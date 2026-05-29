@@ -38,6 +38,11 @@ async function assertJson(path, expectedStatus, init, predicate) {
 
 await assertRedirect("/meeting/live", "/dashboard/meetings");
 await assertRedirect("/reports/live", "/dashboard/meetings");
+await assertRedirect("/create-shadow", "/signin?callbackUrl=%2Fcreate-shadow");
+await assertRedirect(
+  "/create-shadow?invite=PX-AUDIT",
+  "/signin?callbackUrl=%2Fcreate-shadow%3Finvite%3DPX-AUDIT"
+);
 
 await assertJson(
   "/api/meetings",

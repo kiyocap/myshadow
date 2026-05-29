@@ -450,7 +450,15 @@ function ReportPreview() {
   );
 }
 
-export function ProxyLanding() {
+export function ProxyLanding({
+  userEmail,
+  userName
+}: {
+  userEmail?: string | null;
+  userName?: string | null;
+}) {
+  const isSignedIn = Boolean(userEmail);
+  const authLabel = userName || userEmail || "Signed in";
   const pointerX = useMotionValue(0);
   const pointerY = useMotionValue(0);
   const videoX = useSpring(useTransform(pointerX, [-0.5, 0.5], [-14, 14]), {
@@ -477,9 +485,32 @@ export function ProxyLanding() {
             <a href="#trust">Security</a>
             <a href="#pricing">Pricing</a>
           </nav>
-          <Button asChild size="sm" className="bg-white text-black hover:bg-white/90">
-            <Link href="/create-shadow">Create Your Shadow</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            {isSignedIn ? (
+              <>
+                <span className="hidden max-w-44 truncate text-xs text-white/65 sm:inline">
+                  Signed in as {authLabel}
+                </span>
+                <Button asChild size="sm" className="bg-white text-black hover:bg-white/90">
+                  <Link href="/dashboard">Dashboard</Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  asChild
+                  variant="secondary"
+                  size="sm"
+                  className="border-white/20 bg-black/30 text-white hover:bg-white/10"
+                >
+                  <Link href="/signin">Sign in</Link>
+                </Button>
+                <Button asChild size="sm" className="bg-white text-black hover:bg-white/90">
+                  <Link href="/create-shadow">Create Your Shadow</Link>
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
@@ -518,7 +549,9 @@ export function ProxyLanding() {
             className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
           >
             <Button asChild size="lg" className="bg-white text-black hover:bg-white/90">
-              <Link href="/create-shadow">Create Your Shadow</Link>
+              <Link href={isSignedIn ? "/dashboard" : "/create-shadow"}>
+                {isSignedIn ? "Go to Dashboard" : "Create Your Shadow"}
+              </Link>
             </Button>
             <Button
               asChild

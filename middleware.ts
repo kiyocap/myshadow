@@ -1,7 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-  if (process.env.REQUIRE_AUTH !== "true") {
+  const protectedPath =
+    request.nextUrl.pathname.startsWith("/dashboard") ||
+    request.nextUrl.pathname === "/create-shadow" ||
+    request.nextUrl.pathname === "/create-proxy";
+
+  if (!protectedPath && process.env.REQUIRE_AUTH !== "true") {
     return NextResponse.next();
   }
 
@@ -9,9 +14,12 @@ export function middleware(request: NextRequest) {
     request.cookies.has("next-auth.session-token") ||
     request.cookies.has("__Secure-next-auth.session-token");
 
-  if (!hasSession && request.nextUrl.pathname.startsWith("/dashboard")) {
+  if (!hasSession && protectedPath) {
     const signInUrl = new URL("/signin", request.url);
-    signInUrl.searchParams.set("callbackUrl", request.nextUrl.pathname);
+    signInUrl.searchParams.set(
+      "callbackUrl",
+      `${request.nextUrl.pathname}${request.nextUrl.search}`
+    );
     return NextResponse.redirect(signInUrl);
   }
 
@@ -19,5 +27,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"]
+  matcher: ["/dashboard/:path*", "/create-shadow", "/create-proxy"]
 };
