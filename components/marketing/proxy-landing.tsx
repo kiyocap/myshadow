@@ -106,6 +106,24 @@ function HeroConstellation() {
   );
 }
 
+function HeroVideoBackground() {
+  return (
+    <div className="absolute inset-0 overflow-hidden bg-black" aria-hidden="true">
+      <video
+        autoPlay
+        className="h-full w-full object-cover opacity-55 motion-reduce:hidden"
+        loop
+        muted
+        playsInline
+        preload="metadata"
+      >
+        <source src="/videos/shadow-hero.mp4" type="video/mp4" />
+      </video>
+      <div className="absolute inset-0 bg-black/60" />
+    </div>
+  );
+}
+
 function ProxyOrb({
   label,
   tone = "blue",
@@ -305,36 +323,28 @@ export function ProxyLanding() {
       </header>
 
       <section className="relative isolate min-h-[690px] overflow-hidden bg-black px-5 py-28 text-white sm:px-8 lg:py-32">
+        <HeroVideoBackground />
         <HeroConstellation />
         <div className="relative mx-auto flex max-w-7xl flex-col items-center justify-center text-center">
           <Badge className="w-fit border-white/10 bg-white/10 text-white/80">
             <span className="mr-2 h-1.5 w-1.5 rounded-full bg-blue-500" />
             Your digital representative.
           </Badge>
-          <motion.h1
+          <h1
             className="mt-10 max-w-4xl text-5xl font-semibold leading-[1.02] tracking-normal text-white text-balance sm:text-7xl"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
           >
             Before your first date,
             {" "}
             <span className="block text-[#2f6bff]">let your AIs talk.</span>
-          </motion.h1>
-          <motion.p
+          </h1>
+          <p
             className="mx-auto mt-6 max-w-xl text-sm leading-7 text-white/75 sm:text-base"
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.12 }}
           >
             Shadow creates digital representatives that learn about each person
             and meet before you do.
-          </motion.p>
-          <motion.div
+          </p>
+          <div
             className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
           >
             <Button asChild size="lg" className="bg-white text-black hover:bg-white/90">
               <Link href="/create-shadow">Create Your Shadow</Link>
@@ -349,7 +359,7 @@ export function ProxyLanding() {
                 Watch AI Meeting <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-          </motion.div>
+          </div>
           <div className="mt-12 flex flex-col items-center gap-3">
             <p className="text-xs text-white/45">Trusted by early members</p>
             <div className="flex items-center gap-3">
