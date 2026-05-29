@@ -202,36 +202,19 @@ export function DashboardHome({
   const latestHref = `/reports/${latestMeeting?.id ?? "demo"}` as Route;
   const partnerName = latestMeeting?.participants.proxyBName ?? "No partner yet";
   const meetingRows = useMemo<MeetingRow[]>(
-    () => [
-      {
-        a: `${profileName} AI`,
-        b: `${partnerName} AI`,
-        status: latestMeeting
-          ? latestMeeting.source === "openai"
-            ? "AI-generated"
-            : "Preview"
-          : "Completed",
-        time: latestMeeting ? "Latest session" : "2 hours ago",
-        score: `${latestReport.overallScore}%`,
-        href: latestHref
-      },
-      {
-        a: `${profileName} AI`,
-        b: "Sophie AI",
-        status: "Completed",
-        time: "3 days ago",
-        score: "72%",
-        href: "/dashboard/reports"
-      },
-      {
-        a: `${profileName} AI`,
-        b: "Olivia AI",
-        status: "Completed",
-        time: "1 week ago",
-        score: "65%",
-        href: "/dashboard/reports"
-      }
-    ],
+    () =>
+      latestMeeting
+        ? [
+            {
+              a: `${profileName} AI`,
+              b: `${partnerName} AI`,
+              status: latestMeeting.source === "openai" ? "AI-generated" : "Preview",
+              time: "Latest session",
+              score: `${latestReport.overallScore}%`,
+              href: latestHref
+            }
+          ]
+        : [],
     [latestHref, latestMeeting, latestReport.overallScore, partnerName, profileName]
   );
 
@@ -269,9 +252,9 @@ export function DashboardHome({
           </div>
           <div className="rounded-lg border border-border p-5">
             <p className="text-xs text-muted-foreground">AI Meetings</p>
-            <p className="mt-6 text-3xl font-semibold">{latestMeeting ? "1" : "3"}</p>
+            <p className="mt-6 text-3xl font-semibold">{latestMeeting ? "1" : "0"}</p>
             <p className="mt-2 text-xs text-muted-foreground">
-              {latestMeeting ? "Saved this session" : "This month"}
+              {latestMeeting ? "Saved this session" : "No real meetings yet"}
             </p>
           </div>
           <div className="rounded-lg border border-border p-5">
@@ -296,27 +279,42 @@ export function DashboardHome({
             </Button>
           </div>
           <div className="divide-y divide-border">
-            {meetingRows.map((meeting) => (
-              <Link
-                key={`${meeting.a}-${meeting.b}-${meeting.time}`}
-                href={meeting.href as Route}
-                className="grid grid-cols-[1fr_auto] items-center gap-4 px-5 py-4 transition-colors hover:bg-muted"
-              >
-                <div className="flex items-center gap-4">
-                  <span className="h-2.5 w-2.5 rounded-full bg-blue-600 shadow-[0_0_12px_rgba(37,99,235,0.8)]" />
-                  <div>
-                    <p className="text-sm font-medium">
-                      {meeting.a} <span className="mx-2 text-muted-foreground">x</span>{" "}
-                      {meeting.b}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {meeting.status} · {meeting.time}
-                    </p>
+            {meetingRows.length > 0 ? (
+              meetingRows.map((meeting) => (
+                <Link
+                  key={`${meeting.a}-${meeting.b}-${meeting.time}`}
+                  href={meeting.href as Route}
+                  className="grid grid-cols-[1fr_auto] items-center gap-4 px-5 py-4 transition-colors hover:bg-muted"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="h-2.5 w-2.5 rounded-full bg-blue-600 shadow-[0_0_12px_rgba(37,99,235,0.8)]" />
+                    <div>
+                      <p className="text-sm font-medium">
+                        {meeting.a} <span className="mx-2 text-muted-foreground">x</span>{" "}
+                        {meeting.b}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {meeting.status} · {meeting.time}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <p className="text-xl font-semibold">{meeting.score}</p>
-              </Link>
-            ))}
+                  <p className="text-xl font-semibold">{meeting.score}</p>
+                </Link>
+              ))
+            ) : (
+              <div className="px-5 py-8">
+                <p className="text-sm font-medium">No recent AI meetings yet.</p>
+                <p className="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
+                  Invite someone from AI Meetings. Once their Shadow accepts, the real
+                  meeting and report will appear here.
+                </p>
+                <Button asChild className="mt-5" size="sm">
+                  <Link href="/dashboard/meetings">
+                    Create invite <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            )}
           </div>
         </section>
       </section>
