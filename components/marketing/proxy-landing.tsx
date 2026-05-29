@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import {
   ArrowRight,
   Check,
@@ -53,6 +54,24 @@ const trustItems = [
   "Exportable reports"
 ];
 
+const meetingMoments = [
+  {
+    topic: "Values",
+    left: "Hewie protects creative momentum and needs depth to feel fully present.",
+    right: "Emily reads consistency as care and trusts people who follow through quietly."
+  },
+  {
+    topic: "Communication",
+    left: "Hewie becomes direct when the stakes feel high, then softens once there is clarity.",
+    right: "Emily prefers earlier reassurance, especially before a problem becomes urgent."
+  },
+  {
+    topic: "Ambition",
+    left: "Hewie is energized by big work and can lose track of recovery time.",
+    right: "Emily admires drive when it still leaves room for rituals, rest and attention."
+  }
+];
+
 function LogoMark({ dark = false }: { dark?: boolean }) {
   return (
     <div className="flex items-center gap-2">
@@ -83,19 +102,30 @@ function LogoMark({ dark = false }: { dark?: boolean }) {
   );
 }
 
-function HeroVideoBackground() {
+function HeroVideoBackground({
+  x,
+  y
+}: {
+  x: ReturnType<typeof useSpring>;
+  y: ReturnType<typeof useSpring>;
+}) {
   return (
     <div className="absolute inset-0 overflow-hidden bg-black" aria-hidden="true">
-      <video
-        autoPlay
-        className="h-full w-full object-cover opacity-55 motion-reduce:hidden"
-        loop
-        muted
-        playsInline
-        preload="metadata"
+      <motion.div
+        className="absolute inset-0 motion-reduce:transform-none"
+        style={{ x, y, scale: 1.05 }}
       >
-        <source src="/videos/shadow-hero.mp4" type="video/mp4" />
-      </video>
+        <video
+          autoPlay
+          className="h-full w-full object-cover opacity-55 motion-reduce:hidden"
+          loop
+          muted
+          playsInline
+          preload="metadata"
+        >
+          <source src="/videos/shadow-hero.mp4" type="video/mp4" />
+        </video>
+      </motion.div>
       <div className="absolute inset-0 bg-black/60" />
     </div>
   );
@@ -189,18 +219,25 @@ function ProfilePreview() {
             ["Creative", 62],
             ["High Integrity", 81]
           ].map(([label, value]) => (
-            <div
+            <motion.div
               key={label as string}
               className="grid grid-cols-[96px_1fr] items-center gap-3 text-sm"
+              initial={{ opacity: 0.7 }}
+              whileInView={{ opacity: 1 }}
+              whileHover={{ x: 4 }}
+              viewport={{ once: true }}
             >
               <span>{label as string}</span>
               <span className="h-1.5 bg-muted">
-                <span
+                <motion.span
                   className="block h-full bg-blue-600"
-                  style={{ width: `${value}%` }}
+                  initial={{ width: 0 }}
+                  whileInView={{ width: `${value}%` }}
+                  transition={{ duration: 0.7, ease: "easeOut" }}
+                  viewport={{ once: true }}
                 />
               </span>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -209,25 +246,60 @@ function ProfilePreview() {
 }
 
 function MeetingPreview() {
+  const [activeMoment, setActiveMoment] = useState(0);
+  const moment = meetingMoments[activeMoment];
+
   return (
     <div className="relative mx-auto max-w-3xl border border-border bg-black p-8 text-white shadow-quiet-xl">
-      <div className="relative flex min-h-56 items-center justify-center">
+      <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
+        {meetingMoments.map((item, index) => (
+          <button
+            key={item.topic}
+            className={
+              activeMoment === index
+                ? "h-8 border border-white/25 bg-white px-3 text-xs font-medium text-black"
+                : "h-8 border border-white/15 px-3 text-xs text-white/60 transition hover:border-white/30 hover:text-white"
+            }
+            onClick={() => setActiveMoment(index)}
+            type="button"
+          >
+            {item.topic}
+          </button>
+        ))}
+      </div>
+      <motion.div className="relative flex min-h-56 items-center justify-center">
         <div className="absolute h-px w-52 bg-white/15" />
         <motion.div
           className="absolute h-px w-52 bg-blue-600"
           animate={{ scaleX: [0.18, 1, 0.18], opacity: [0.2, 1, 0.2] }}
           transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
         />
-        <ProxyOrb label="Hewie AI" compact />
+        <motion.div whileHover={{ y: -6, scale: 1.03 }}>
+          <ProxyOrb label="Hewie AI" compact />
+        </motion.div>
         <div className="w-16" />
-        <ProxyOrb label="Emily AI" tone="violet" compact />
-        <span className="absolute left-1/2 top-8 max-w-[240px] -translate-x-1/2 rounded-md border border-white/10 bg-white/10 px-3 py-2 text-center text-xs text-white/80">
-          Hewie tends to become obsessive when excited about a project.
-        </span>
-        <span className="absolute bottom-8 left-1/2 max-w-[240px] -translate-x-1/2 rounded-md border border-white/10 bg-white/10 px-3 py-2 text-center text-xs text-white/80">
-          Emily values consistency and predictability in a partner.
-        </span>
-      </div>
+        <motion.div whileHover={{ y: -6, scale: 1.03 }}>
+          <ProxyOrb label="Emily AI" tone="violet" compact />
+        </motion.div>
+        <motion.span
+          key={`${moment.topic}-left`}
+          className="absolute left-1/2 top-8 max-w-[260px] -translate-x-1/2 rounded-md border border-white/10 bg-white/10 px-3 py-2 text-center text-xs leading-5 text-white/80"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+        >
+          {moment.left}
+        </motion.span>
+        <motion.span
+          key={`${moment.topic}-right`}
+          className="absolute bottom-8 left-1/2 max-w-[260px] -translate-x-1/2 rounded-md border border-white/10 bg-white/10 px-3 py-2 text-center text-xs leading-5 text-white/80"
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+        >
+          {moment.right}
+        </motion.span>
+      </motion.div>
     </div>
   );
 }
@@ -235,7 +307,10 @@ function MeetingPreview() {
 function ReportPreview() {
   return (
     <div className="grid gap-4 md:grid-cols-[0.9fr_1.1fr]">
-      <div className="border border-border bg-white p-5 shadow-quiet-xl">
+      <motion.div
+        className="border border-border bg-white p-5 shadow-quiet-xl"
+        whileHover={{ y: -4 }}
+      >
         <p className="text-sm text-muted-foreground">Compatibility</p>
         <p className="mt-2 text-3xl font-semibold">86%</p>
         {[
@@ -252,34 +327,54 @@ function ReportPreview() {
           >
             <span>{label}</span>
             <span className="h-1.5 bg-muted">
-              <span
+              <motion.span
                 className="block h-full bg-blue-600"
-                style={{ width: `${88 - valueIndex * 6}%` }}
+                initial={{ width: 0 }}
+                whileInView={{ width: `${88 - valueIndex * 6}%` }}
+                transition={{ duration: 0.65, delay: valueIndex * 0.04 }}
+                viewport={{ once: true }}
               />
             </span>
           </div>
         ))}
-      </div>
+      </motion.div>
       <div className="grid gap-4">
-        <div className="border border-border bg-white p-5 shadow-quiet-xl">
+        <motion.div
+          className="border border-border bg-white p-5 shadow-quiet-xl"
+          whileHover={{ x: 4 }}
+        >
           <p className="text-sm text-muted-foreground">Top Strength</p>
           <p className="mt-2 text-lg font-semibold">Strong long-term potential</p>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Both value growth, loyalty and meaningful connection.
           </p>
-        </div>
-        <div className="border border-border bg-white p-5 shadow-quiet-xl">
+        </motion.div>
+        <motion.div
+          className="border border-border bg-white p-5 shadow-quiet-xl"
+          whileHover={{ x: 4 }}
+        >
           <p className="text-sm text-muted-foreground">Watch Out For</p>
           <p className="mt-2 text-lg font-semibold">
             Different communication styles under stress.
           </p>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
 }
 
 export function ProxyLanding() {
+  const pointerX = useMotionValue(0);
+  const pointerY = useMotionValue(0);
+  const videoX = useSpring(useTransform(pointerX, [-0.5, 0.5], [-14, 14]), {
+    stiffness: 70,
+    damping: 22
+  });
+  const videoY = useSpring(useTransform(pointerY, [-0.5, 0.5], [-9, 9]), {
+    stiffness: 70,
+    damping: 22
+  });
+
   return (
     <main className="bg-background text-foreground">
       <header className="absolute top-0 z-40 w-full text-white">
@@ -299,8 +394,19 @@ export function ProxyLanding() {
         </div>
       </header>
 
-      <section className="relative isolate min-h-[690px] overflow-hidden bg-black px-5 py-28 text-white sm:px-8 lg:py-32">
-        <HeroVideoBackground />
+      <section
+        className="relative isolate min-h-[690px] overflow-hidden bg-black px-5 py-28 text-white sm:px-8 lg:py-32"
+        onMouseLeave={() => {
+          pointerX.set(0);
+          pointerY.set(0);
+        }}
+        onMouseMove={(event) => {
+          const rect = event.currentTarget.getBoundingClientRect();
+          pointerX.set((event.clientX - rect.left) / rect.width - 0.5);
+          pointerY.set((event.clientY - rect.top) / rect.height - 0.5);
+        }}
+      >
+        <HeroVideoBackground x={videoX} y={videoY} />
         <div className="relative mx-auto flex max-w-7xl flex-col items-center justify-center text-center">
           <Badge className="w-fit border-white/10 bg-white/10 text-white/80">
             <span className="mr-2 h-1.5 w-1.5 rounded-full bg-blue-500" />
