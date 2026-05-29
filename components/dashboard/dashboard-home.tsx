@@ -87,7 +87,7 @@ function MeetingPreview({
   transcriptPreview: TranscriptPreviewLine[];
   profileName: string;
 }) {
-  const partnerName = latestMeeting?.participants.proxyBName ?? "Hayley";
+  const partnerName = latestMeeting?.participants.proxyBName ?? "No partner yet";
   const meetingId = latestMeeting?.id ?? "Preview";
   const sourceLabel =
     latestMeeting?.source === "openai"
@@ -200,7 +200,7 @@ export function DashboardHome({
   const profileName = localProfile?.name || "Hewie";
   const latestReport = latestMeeting?.report ?? fallbackReport;
   const latestHref = `/reports/${latestMeeting?.id ?? "demo"}` as Route;
-  const partnerName = latestMeeting?.participants.proxyBName ?? "Hayley";
+  const partnerName = latestMeeting?.participants.proxyBName ?? "No partner yet";
   const meetingRows = useMemo<MeetingRow[]>(
     () => [
       {
@@ -248,7 +248,7 @@ export function DashboardHome({
             </p>
           </div>
           <Button asChild variant="secondary" size="sm">
-            <Link href="/meeting/live">
+            <Link href="/dashboard/meetings">
               New meeting <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { demoAIMeeting, generateAIMeeting } from "@/lib/ai";
+import { demoAIMeeting } from "@/lib/ai";
 import { generateDbMeeting, getMeetingReadiness } from "@/lib/db-meetings";
 import { getStoredMeeting, saveMeeting } from "@/lib/meeting-store";
 
@@ -39,24 +39,11 @@ export async function GET(
     );
   }
 
-  try {
-    const meeting = await generateAIMeeting({ meetingId: id });
-
-    saveMeeting(meeting);
-
-    return NextResponse.json(meeting);
-  } catch (error) {
-    const meeting = {
-      ...demoAIMeeting(id),
-      source: "demo",
-      warning:
-      error instanceof Error
-        ? error.message
-        : "AI meeting generation failed; returned a preview transcript."
-    } as const;
-
-    saveMeeting(meeting);
-
-    return NextResponse.json(meeting);
-  }
+  return NextResponse.json(
+    {
+      error:
+        "No paired invite was found for this meeting. Create an invite and wait for the other person to accept before starting."
+    },
+    { status: 404 }
+  );
 }

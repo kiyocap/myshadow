@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { getServerSession } from "next-auth";
 import { ArrowRight, Plus } from "lucide-react";
 
@@ -6,17 +7,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CopyInviteButton } from "@/components/dashboard/copy-invite-button";
 import { authOptions } from "@/lib/auth";
-import { ensureInviteForUser } from "@/lib/db-meetings";
+import { ensureInviteForUser, inviteCodeForUser } from "@/lib/db-meetings";
 import { activeTopics } from "@/lib/preview-data";
-
-const invitePath = "/invite/PX-4829";
 
 export const dynamic = "force-dynamic";
 
 export default async function MeetingsPage() {
   const session = await getServerSession(authOptions);
+  const inviteCode = session?.user?.id
+    ? inviteCodeForUser(session.user.id)
+    : "PX-SIGNIN";
+  const invitePath = `/invite/${inviteCode}` as Route;
   const inviteState = session?.user?.id
-    ? await ensureInviteForUser("PX-4829", session.user.id).catch(() => null)
+    ? await ensureInviteForUser(inviteCode, session.user.id).catch(() => null)
     : null;
   const readyMeetingHref = inviteState?.meetingId
     ? (`/meeting/${inviteState.meetingId}` as const)
@@ -40,7 +43,7 @@ export default async function MeetingsPage() {
           </p>
         </div>
         <Button asChild className="w-full md:w-auto">
-          <Link href={readyMeetingHref ?? "/invite/PX-4829"}>
+          <Link href={readyMeetingHref ?? invitePath}>
             <Plus className="h-4 w-4" />
             New AI meeting
           </Link>
@@ -75,15 +78,10 @@ export default async function MeetingsPage() {
               Waiting for someone to accept
             </Button>
           )}
-          <Button asChild variant="secondary" className="mt-3 w-full">
-            <Link href="/meeting/live">
-              Preview demo meeting <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
           <p className="mt-3 text-xs leading-5 text-muted-foreground">
             {inviteState?.isReady
               ? `${participantSummary} are connected on this invite.`
-              : "You are not meeting Hayley here. Your friend has to sign in, create a Shadow, and accept this invite first."}
+              : "You are not meeting a placeholder here. Your friend has to sign in, create a Shadow, and accept this invite first."}
           </p>
         </div>
 

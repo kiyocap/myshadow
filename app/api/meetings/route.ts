@@ -3,7 +3,6 @@ import { z } from "zod";
 
 import {
   demoAIMeeting,
-  demoProxyRepresentative,
   generateAIMeeting,
   type ProxyRepresentative
 } from "@/lib/ai";
@@ -47,13 +46,14 @@ export async function POST(request: Request) {
     );
   }
 
-  const proxyA =
-    (parsed.data.proxyA as ProxyRepresentative | undefined) ??
-    demoProxyRepresentative("Hewie");
-  const proxyB =
-    (parsed.data.proxyB as ProxyRepresentative | undefined) ??
-    demoProxyRepresentative("Hayley");
-  const meetingId = parsed.data.meetingId ?? "live-demo";
+  const proxyA = parsed.data.proxyA as ProxyRepresentative | undefined;
+  const proxyB = parsed.data.proxyB as ProxyRepresentative | undefined;
+  const meetingId = parsed.data.meetingId ?? "demo";
+
+  if (meetingId === "demo") {
+    return NextResponse.json(saveMeeting(demoAIMeeting(meetingId)));
+  }
+
   const dbMeeting = await generateDbMeeting(meetingId);
 
   if (dbMeeting) {
@@ -69,6 +69,16 @@ export async function POST(request: Request) {
           "This invite is still waiting for the second person to create a Shadow and accept."
       },
       { status: 409 }
+    );
+  }
+
+  if (!proxyA || !proxyB) {
+    return NextResponse.json(
+      {
+        error:
+          "No paired invite was found for this meeting. Create an invite and wait for the other person to accept before starting."
+      },
+      { status: 404 }
     );
   }
 

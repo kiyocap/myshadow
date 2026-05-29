@@ -526,8 +526,8 @@ export function ProxyLanding() {
               size="lg"
               className="border-white/20 bg-black text-white hover:bg-white/10"
             >
-              <Link href="/meeting/live">
-                Watch AI Meeting <ArrowRight className="h-4 w-4" />
+              <Link href="/meeting/demo">
+                Watch Demo Meeting <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
           </div>

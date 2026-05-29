@@ -70,7 +70,7 @@ export function MeetingRoom({ meetingId }: { meetingId: string }) {
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            meetingId: meetingId === "demo" ? `live-${Date.now()}` : meetingId
+            meetingId
           }),
           signal: controller.signal
         });
@@ -156,7 +156,7 @@ export function MeetingRoom({ meetingId }: { meetingId: string }) {
 
   const currentTopic = visibleTranscript.at(-1)?.topic ?? "Identity";
   const proxyAName = meeting?.participants.proxyA.name ?? "Hewie";
-  const proxyBName = meeting?.participants.proxyB.name ?? "Hayley";
+  const proxyBName = meeting?.participants.proxyB.name ?? "Invite partner";
   const reportHref = `/reports/${meeting?.id ?? meetingId}` as Route;
   const completed = Boolean(
     meeting && visibleCount >= meeting.transcript.length && !loading

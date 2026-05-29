@@ -35,6 +35,11 @@ const enumToTopic: Record<MeetingTopic, MeetingTranscriptMessage["topic"]> = {
   LONG_TERM_GOALS: "Long-Term Goals"
 };
 
+export function inviteCodeForUser(userId: string) {
+  const normalized = userId.replace(/[^a-z0-9]/gi, "").toUpperCase();
+  return `PX-${normalized.slice(-8)}`;
+}
+
 export async function acceptInviteForUser(inviteCode: string, userId: string) {
   const db = getPrisma();
   const proxy = await db.proxy.findUnique({ where: { userId } });

@@ -812,7 +812,7 @@ export async function generateAIMeeting({
             "Use three-turn topic blocks: ask, answer and optionally reciprocate, answer or synthesize without a trailing question.",
             "The third turn of each topic block must not end with a question.",
             "Prefer named, specific claims over generic compatibility language.",
-            "Use direct questions like 'What does Hewie do when...' or 'What would Hayley need if...'",
+            `Use direct questions like "What does ${proxyA.name} do when..." or "What would ${proxyB.name} need if..."`,
             "Include inner-life questions that the humans would actually want to discuss after reading the transcript.",
             "Avoid rigid transitions such as 'Now let us discuss money.'"
           ],
@@ -897,7 +897,7 @@ export function demoProxyRepresentative(name = "Hewie"): ProxyRepresentative {
       communicationStyle:
         "Measured, precise, and reassurance-oriented. Prefers calm specifics over intensity without context.",
       humourStyle:
-        "Soft, dry, and situational. Hayley uses humour once emotional safety is established.",
+        `Soft, dry, and situational. ${name} uses humour once emotional safety is established.`,
       strengths: [
         "Consistent when committed",
         "Good at seeing patterns",
@@ -914,7 +914,7 @@ export function demoProxyRepresentative(name = "Hewie"): ProxyRepresentative {
         "A partner who repairs calmly after conflict"
       ],
       summary:
-        "Hayley's Shadow presents as thoughtful, steady, and careful with trust: someone who values warmth, consistency, and emotional clarity."
+        `${name}'s Shadow presents as thoughtful, steady, and careful with trust: someone who values warmth, consistency, and emotional clarity.`
     };
   }
 
@@ -1057,7 +1057,7 @@ export function demoAIMeeting(
       topic: "Communication",
       turn: 18,
       content:
-        `${proxyB.name} can wait too long. ${proxyB.name} may call it observation, but sometimes it becomes a silent test. A real growth question for ${proxyB.name} is: "Can Hayley ask for reassurance before resentment becomes evidence?"`
+        `${proxyB.name} can wait too long. ${proxyB.name} may call it observation, but sometimes it becomes a silent test. A real growth question for ${proxyB.name} is: "Can ${proxyB.name} ask for reassurance before resentment becomes evidence?"`
     },
     {
       speakerName: `${proxyA.name} AI`,
@@ -1123,7 +1123,7 @@ export function demoAIMeeting(
     currentTopic: "Long-Term Goals",
     participants: { proxyA, proxyB },
     transcript,
-    report: demoCompatibilityReport(),
+    report: demoCompatibilityReport(proxyA.name, proxyB.name),
     source: "demo"
   };
 }
@@ -1148,7 +1148,10 @@ export function demoProxyProfile(name = "Hewie"): GeneratedProxyProfile {
   };
 }
 
-export function demoCompatibilityReport(): CompatibilityReportData {
+export function demoCompatibilityReport(
+  proxyAName = "Hewie",
+  proxyBName = "Hayley"
+): CompatibilityReportData {
   return {
     overallScore: 87,
     communication: 91,
@@ -1181,7 +1184,7 @@ export function demoCompatibilityReport(): CompatibilityReportData {
         bestFor:
           "Testing emotional pace without making the first meeting feel performative.",
         whyItFits:
-          "Hewie and Hayley both seem to value depth, but Hayley may need calm pacing while Hewie may need room for intensity. Dinner creates focus; the walk lets the conversation breathe.",
+          `${proxyAName} and ${proxyBName} both seem to value depth, but ${proxyBName} may need calm pacing while ${proxyAName} may need room for intensity. Dinner creates focus; the walk lets the conversation breathe.`,
         whatToNotice:
           "Notice whether silence feels comfortable, whether questions become more honest after movement, and whether both people can slow down without the energy going flat.",
         logistics:
@@ -1199,7 +1202,7 @@ export function demoCompatibilityReport(): CompatibilityReportData {
         bestFor:
           "Seeing how both people interpret, disagree, and become curious without pressure.",
         whyItFits:
-          "A shared object gives Hewie and Hayley something to interpret together before turning directly toward personal topics. This reduces interview energy and reveals taste, curiosity, and emotional associations.",
+          `A shared object gives ${proxyAName} and ${proxyBName} something to interpret together before turning directly toward personal topics. This reduces interview energy and reveals taste, curiosity, and emotional associations.`,
         whatToNotice:
           "Notice whether the conversation becomes playful, whether either person dominates interpretation, and whether differences in taste feel intriguing rather than corrective.",
         logistics:
@@ -1217,7 +1220,7 @@ export function demoCompatibilityReport(): CompatibilityReportData {
         bestFor:
           "Reading lifestyle fit through small choices, sensory pace, and low-stakes negotiation.",
         whyItFits:
-          "This gives Hayley predictability and gives Hewie novelty without pressure. Small decisions along the way reveal lifestyle fit, pace, generosity, and how each person handles tiny frictions.",
+          `This gives ${proxyBName} predictability and gives ${proxyAName} novelty without pressure. Small decisions along the way reveal lifestyle fit, pace, generosity, and how each person handles tiny frictions.`,
         whatToNotice:
           "Notice how plans are made, how preferences are negotiated, and whether practical choices become easy or loaded.",
         logistics:

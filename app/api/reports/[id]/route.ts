@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { demoAIMeeting, generateAIMeeting } from "@/lib/ai";
+import { demoAIMeeting } from "@/lib/ai";
 import { generateDbMeeting } from "@/lib/db-meetings";
 import { getStoredMeeting, saveMeeting } from "@/lib/meeting-store";
 
@@ -12,6 +12,14 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+
+  if (id === "live" || id === "live-demo") {
+    return NextResponse.json(
+      { error: "Reports are only available after a real invite meeting runs." },
+      { status: 404 }
+    );
+  }
+
   const storedMeeting = getStoredMeeting(id);
   const dbMeeting = storedMeeting ? null : await generateDbMeeting(id);
   const meeting =
@@ -19,9 +27,14 @@ export async function GET(
     dbMeeting ??
     (id === "demo"
       ? saveMeeting(demoAIMeeting(id))
-      : await generateAIMeeting({ meetingId: id })
-          .then(saveMeeting)
-          .catch(() => saveMeeting(demoAIMeeting(id))));
+      : null);
+
+  if (!meeting) {
+    return NextResponse.json(
+      { error: "Report not found. Run a real invite meeting first." },
+      { status: 404 }
+    );
+  }
 
   return NextResponse.json({
     id,
