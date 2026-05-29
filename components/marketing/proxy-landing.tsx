@@ -21,6 +21,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import { compatibilityReport, transcript } from "@/lib/preview-data";
 
 const sections = [
@@ -494,6 +495,7 @@ export function ProxyLanding({
                 <Button asChild size="sm" className="bg-white text-black hover:bg-white/90">
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
+                <SignOutButton className="border-white/20 bg-black/30 text-white hover:bg-white/10" />
               </>
             ) : (
               <>

@@ -1,10 +1,17 @@
 import Link from "next/link";
 import { BarChart3, Plus } from "lucide-react";
 
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Button } from "@/components/ui/button";
 import { DashboardMobileNav, DashboardNav } from "@/components/dashboard/dashboard-nav";
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  userEmail
+}: {
+  children: React.ReactNode;
+  userEmail?: string | null;
+}) {
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#f8f8f8]">
       <aside className="fixed inset-y-0 left-0 hidden w-56 border-r border-border bg-white px-4 py-5 lg:block">
@@ -26,14 +33,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="mt-8">
           <DashboardNav />
         </div>
-        <div className="absolute bottom-5 left-4 right-4 rounded-lg border border-border bg-[#fafafa] p-4">
-          <p className="text-sm font-medium">Upgrade to Pro</p>
-          <p className="mt-2 text-xs leading-5 text-muted-foreground">
-            Unlimited meetings, deeper model review, and PDF exports.
-          </p>
-          <Button asChild variant="secondary" size="sm" className="mt-4 w-full">
-            <Link href="/dashboard/settings">Upgrade</Link>
-          </Button>
+        <div className="absolute bottom-5 left-4 right-4 space-y-3">
+          <div className="rounded-lg border border-border bg-white p-3">
+            <p className="truncate text-xs text-muted-foreground">
+              {userEmail ? `Signed in as ${userEmail}` : "Signed in"}
+            </p>
+            <SignOutButton className="mt-3 w-full justify-center" />
+          </div>
+          <div className="rounded-lg border border-border bg-[#fafafa] p-4">
+            <p className="text-sm font-medium">Upgrade to Pro</p>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">
+              Unlimited meetings, deeper model review, and PDF exports.
+            </p>
+            <Button asChild variant="secondary" size="sm" className="mt-4 w-full">
+              <Link href="/dashboard/settings">Upgrade</Link>
+            </Button>
+          </div>
         </div>
       </aside>
 
@@ -56,6 +71,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <BarChart3 className="h-4 w-4" />
               </Link>
             </Button>
+            <SignOutButton className="hidden sm:inline-flex" />
+            <SignOutButton compact className="sm:hidden" />
           </div>
         </header>
         <DashboardMobileNav />

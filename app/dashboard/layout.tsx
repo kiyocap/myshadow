@@ -17,5 +17,5 @@ export default async function DashboardLayout({
     redirect("/signin?callbackUrl=/dashboard");
   }
 
-  return <AppShell>{children}</AppShell>;
+  return <AppShell userEmail={session.user.email}>{children}</AppShell>;
 }
