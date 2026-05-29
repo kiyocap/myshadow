@@ -502,16 +502,6 @@ export function ProxyLanding() {
                 viewport={{ once: true, margin: "-80px" }}
               >
                 <div className="relative">
-                  <motion.span
-                    className="absolute -left-[45px] top-8 hidden h-3 w-3 rounded-full border border-blue-500 bg-white md:block"
-                    whileInView={{
-                      backgroundColor: "#2563eb",
-                      boxShadow: "0 0 0 5px rgba(37,99,235,0.12)"
-                    }}
-                    viewport={{ amount: 0.75, margin: "-40% 0px -40% 0px" }}
-                    transition={{ duration: 0.2 }}
-                    aria-hidden="true"
-                  />
                   <p className="text-xs font-semibold text-muted-foreground">
                     {section.kicker}
                   </p>
