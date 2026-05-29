@@ -231,8 +231,9 @@ function DatingInefficiencyIllustration() {
                 }
               />
               {item.type === "signal" ? (
-                <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">
-                  ?
+                <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-blue-600">
+                  <span className="h-3.5 w-3.5 rounded-full border border-white" />
+                  <span className="absolute bottom-3 right-3 h-1.5 w-1.5 rounded-full bg-white" />
                 </span>
               ) : (
                 <span className="relative flex h-11 w-11 flex-col items-center justify-end rounded-full bg-black pb-2">
@@ -581,7 +582,9 @@ export function ProxyLanding() {
                 </div>
 
                 {index === 0 && (
-                  <DatingInefficiencyIllustration />
+                  <div className="mx-auto w-full max-w-3xl">
+                    <DatingInefficiencyIllustration />
+                  </div>
                 )}
 
                 {index === 1 && (
