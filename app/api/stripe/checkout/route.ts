@@ -4,7 +4,7 @@ import Stripe from "stripe";
 export async function POST() {
   if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_PREMIUM_PRICE_ID) {
     return NextResponse.json(
-      { error: "Stripe is not configured in this environment." },
+      { error: "Billing is waiting for production credentials." },
       { status: 501 }
     );
   }

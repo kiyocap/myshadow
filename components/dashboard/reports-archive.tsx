@@ -76,7 +76,7 @@ export function ReportsArchive({
               <p className="text-sm text-muted-foreground">{partnerLabel}</p>
               {latestMeeting && (
                 <Badge tone={latestMeeting.source === "openai" ? "blue" : "neutral"}>
-                  {latestMeeting.source === "openai" ? "AI-generated" : "Sample preview"}
+                  {latestMeeting.source === "openai" ? "AI-generated" : "Preview"}
                 </Badge>
               )}
             </div>

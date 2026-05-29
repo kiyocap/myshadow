@@ -31,7 +31,7 @@ node /private/tmp/shadow-npm/package/bin/npm-cli.js run dev:wasm
 node /private/tmp/shadow-npm/package/bin/npm-cli.js run build:wasm
 ```
 
-Production integrations are environment-variable gated. Without keys, the app falls back to high-quality demo data so the full product experience stays explorable.
+Production integrations are environment-variable gated. Without keys, the app falls back to high-quality preview data so the full product experience stays explorable.
 
 ## Product Surfaces
 

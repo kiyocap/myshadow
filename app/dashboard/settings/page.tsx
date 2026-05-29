@@ -7,17 +7,17 @@ const settings = [
   {
     icon: KeyRound,
     title: "Authentication",
-    body: "Google, Apple, and magic link sign-in are configured through NextAuth."
+    body: "Choose a private sign-in method before imports, transcripts, or reports are saved to an account."
   },
   {
     icon: Mail,
-    title: "Email",
-    body: "Resend handles secure magic links and product notifications."
+    title: "Notifications",
+    body: "Receive meeting links and report updates without exposing the underlying compatibility data."
   },
   {
     icon: CreditCard,
     title: "Billing",
-    body: "Stripe checkout unlocks Premium: unlimited meetings, deep analysis, and PDF exports."
+    body: "Premium unlocks unlimited meetings, deeper analysis, and export-ready reports."
   },
   {
     icon: Shield,
@@ -32,8 +32,8 @@ export default function SettingsPage() {
       <Badge tone="blue">Settings</Badge>
       <h1 className="mt-5 text-4xl font-semibold">Controls for trust and scale</h1>
       <p className="mt-4 max-w-2xl text-muted-foreground">
-        Production integrations are environment-variable gated and ready for
-        deployment on Vercel.
+        Manage the parts of Shadow that affect privacy, access, sharing, and
+        upgrade status.
       </p>
 
       <div className="mt-10 grid gap-4 md:grid-cols-2">

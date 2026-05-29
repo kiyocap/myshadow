@@ -1,6 +1,6 @@
 import { demoCompatibilityReport, demoProxyProfile, meetingTopics } from "@/lib/ai";
 
-export const proxyProfile = demoProxyProfile("Hewie");
+export const shadowProfile = demoProxyProfile("Hewie");
 
 export const compatibilityReport = demoCompatibilityReport();
 

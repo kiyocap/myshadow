@@ -88,7 +88,7 @@ export function MeetingRoom({ meetingId }: { meetingId: string }) {
 
         if (data.warning) {
           setError(
-            "Live generation was unavailable, so Shadow is showing a sample transcript. Try regenerating in a moment."
+            "Live generation was unavailable, so Shadow is showing a preview transcript. Try regenerating in a moment."
           );
         }
       } catch (fetchError) {
@@ -174,7 +174,7 @@ export function MeetingRoom({ meetingId }: { meetingId: string }) {
               ? "Generating"
               : meeting?.source === "openai"
                 ? "OpenAI live"
-                : "Sample preview"}
+                : "Preview"}
           </Badge>
           <Button
             variant="secondary"

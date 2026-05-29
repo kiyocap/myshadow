@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     warning:
       error instanceof Error
         ? error.message
-        : "AI meeting generation failed; returned a sample transcript."
+        : "AI meeting generation failed; returned a preview transcript."
   }));
 
   saveMeeting(meeting);

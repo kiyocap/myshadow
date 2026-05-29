@@ -27,7 +27,7 @@ export async function POST(request: Request) {
       warning:
         error instanceof Error
           ? error.message
-          : "Shadow generation failed; returned a sample profile."
+          : "Shadow generation failed; returned a preview profile."
     });
   }
 }

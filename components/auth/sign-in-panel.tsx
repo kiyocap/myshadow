@@ -21,7 +21,7 @@ export function SignInPanel({ providers }: SignInPanelProps) {
   const [notice, setNotice] = useState<string | null>(null);
 
   function unavailable(provider: "Google" | "Apple" | "magic link") {
-    setNotice(`${provider} sign-in is not configured in this environment.`);
+    setNotice(`${provider} sign-in is waiting for production credentials.`);
   }
 
   return (
@@ -29,7 +29,7 @@ export function SignInPanel({ providers }: SignInPanelProps) {
       <div>
         <h2 className="text-xl font-semibold">Continue to Shadow</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Choose a production provider or request a secure magic link.
+          Choose a private provider or request a secure magic link.
         </p>
       </div>
       <div className="mt-8 grid gap-3">

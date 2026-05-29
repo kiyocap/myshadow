@@ -256,7 +256,7 @@ export function ProxyProfilePanel({ profile }: { profile: GeneratedProxyProfile 
             {[
               localProfile
                 ? `${profileName} AI profile saved from Create Shadow`
-                : "Sample Shadow profile loaded",
+                : "Preview Shadow profile loaded",
               "Latest AI meeting saved",
               "Compatibility report created",
               "Three first-date options generated"

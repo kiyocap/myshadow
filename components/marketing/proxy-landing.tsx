@@ -16,7 +16,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { compatibilityReport, transcript } from "@/lib/sample-data";
+import { compatibilityReport, transcript } from "@/lib/preview-data";
 
 const sections = [
   {
@@ -248,7 +248,7 @@ function ReportPreview() {
           "Lifestyle",
           "Values",
           "Ambition",
-          "Humor",
+          "Humour",
           "Conflict Resolution"
         ].map((label, valueIndex) => (
           <div
@@ -318,6 +318,7 @@ export function ProxyLanding() {
             transition={{ duration: 0.7 }}
           >
             Before your first date,
+            {" "}
             <span className="block text-[#2f6bff]">let your AIs talk.</span>
           </motion.h1>
           <motion.p
@@ -467,8 +468,8 @@ export function ProxyLanding() {
             </h2>
             <p className="mt-6 max-w-xl leading-7 text-white/65">
               Every report gives you a score, category-level breakdown, green
-              flags, potential friction, questions to discuss, and a suggested
-              first date.
+              flags, potential friction, questions to discuss, and three
+              suggested first-date options.
             </p>
           </div>
           <div className="border border-white/15 bg-white p-6 text-black">

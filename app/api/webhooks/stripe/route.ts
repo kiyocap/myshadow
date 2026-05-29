@@ -5,7 +5,7 @@ import Stripe from "stripe";
 export async function POST(request: Request) {
   if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
     return NextResponse.json(
-      { error: "Stripe webhook is not configured." },
+      { error: "Stripe webhook credentials are not available." },
       { status: 501 }
     );
   }

@@ -4,7 +4,7 @@ import { ArrowRight, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CopyInviteButton } from "@/components/dashboard/copy-invite-button";
-import { activeTopics } from "@/lib/sample-data";
+import { activeTopics } from "@/lib/preview-data";
 
 const inviteLink = "shadow.ai/invite/PX-4829";
 

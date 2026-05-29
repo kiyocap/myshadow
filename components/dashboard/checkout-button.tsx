@@ -39,7 +39,7 @@ export function CheckoutButton() {
         disabled={loading}
       >
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-        {loading ? "Opening checkout" : "Start Stripe checkout"}
+        {loading ? "Opening checkout" : "Upgrade to Premium"}
       </Button>
       {message && <p className="max-w-sm text-xs leading-5 text-white/60">{message}</p>}
     </div>

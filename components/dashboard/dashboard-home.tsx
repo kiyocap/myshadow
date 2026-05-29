@@ -93,7 +93,7 @@ function MeetingPreview({
     latestMeeting?.source === "openai"
       ? "OpenAI live"
       : latestMeeting
-        ? "Sample preview"
+        ? "Preview"
         : "Preview";
   const lines =
     latestMeeting?.transcriptPreview.map((line) => ({
@@ -209,7 +209,7 @@ export function DashboardHome({
         status: latestMeeting
           ? latestMeeting.source === "openai"
             ? "AI-generated"
-            : "Sample preview"
+            : "Preview"
           : "Completed",
         time: latestMeeting ? "Latest session" : "2 hours ago",
         score: `${latestReport.overallScore}%`,

@@ -31,9 +31,9 @@ export async function GET(
       ...demoAIMeeting(id),
       source: "demo",
       warning:
-        error instanceof Error
-          ? error.message
-          : "AI meeting generation failed; returned a sample transcript."
+      error instanceof Error
+        ? error.message
+        : "AI meeting generation failed; returned a preview transcript."
     } as const;
 
     saveMeeting(meeting);

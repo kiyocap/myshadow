@@ -286,7 +286,7 @@ export function CreateProxyFlow() {
       setProfileError(
         error instanceof Error
           ? error.message
-          : "Shadow generation failed; showing a sample profile."
+          : "Shadow generation failed; showing a preview profile."
       );
     }
   }
@@ -565,7 +565,7 @@ export function CreateProxyFlow() {
                   ? "Generating"
                   : profileStatus === "ready"
                     ? "AI-generated"
-                    : "Sample profile"}
+                    : "Preview profile"}
               </Badge>
               <p className="text-sm text-muted-foreground">
                 {selectedSignalCount} guided signals

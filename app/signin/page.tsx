@@ -28,8 +28,8 @@ export default function SignInPage() {
             Sign in to keep your representative private.
           </h1>
           <p className="mt-6 max-w-lg leading-7 text-muted-foreground">
-            Shadow uses explicit authentication before imports, meetings, and
-            reports. OAuth and magic links are wired for production keys.
+            Shadow keeps imports, meetings, and reports behind explicit access.
+            Continue with a private provider or send yourself a secure magic link.
           </p>
         </div>
         <SignInPanel providers={providers} />

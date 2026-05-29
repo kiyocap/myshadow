@@ -218,7 +218,7 @@ export function ReportView({
 }) {
   const scores = getScores(report);
   const sourceLabel =
-    source === "openai" ? "AI-generated report" : reportId === "demo" ? "Sample report" : reportId;
+    source === "openai" ? "AI-generated report" : reportId === "demo" ? "Preview report" : reportId;
 
   return (
     <main className="min-h-screen bg-[#f8f8f8]">
