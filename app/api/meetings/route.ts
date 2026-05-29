@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import {
-  demoAIMeeting,
-  generateAIMeeting,
-  type ProxyRepresentative
-} from "@/lib/ai";
+import { demoAIMeeting, generateAIMeeting, type ProxyRepresentative } from "@/lib/ai";
 import { generateDbMeeting, getMeetingReadiness } from "@/lib/db-meetings";
 import { saveMeeting } from "@/lib/meeting-store";
 
@@ -54,7 +50,21 @@ export async function POST(request: Request) {
     return NextResponse.json(saveMeeting(demoAIMeeting(meetingId)));
   }
 
-  const dbMeeting = await generateDbMeeting(meetingId);
+  let dbMeeting;
+
+  try {
+    dbMeeting = await generateDbMeeting(meetingId);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "AI meeting generation failed. Please retry in a moment."
+      },
+      { status: 502 }
+    );
+  }
 
   if (dbMeeting) {
     return NextResponse.json(dbMeeting);
@@ -82,17 +92,25 @@ export async function POST(request: Request) {
     );
   }
 
-  const meeting = await generateAIMeeting({
-    meetingId,
-    proxyA,
-    proxyB
-  }).catch((error) => ({
-    ...demoAIMeeting(meetingId, proxyA, proxyB),
-    warning:
-      error instanceof Error
-        ? error.message
-        : "AI meeting generation failed; returned a preview transcript."
-  }));
+  let meeting;
+
+  try {
+    meeting = await generateAIMeeting({
+      meetingId,
+      proxyA,
+      proxyB
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "AI meeting generation failed. Please retry in a moment."
+      },
+      { status: 502 }
+    );
+  }
 
   saveMeeting(meeting);
 

@@ -1,7 +1,6 @@
 import { MeetingStatus, MeetingTopic } from "@prisma/client";
 
 import {
-  demoAIMeeting,
   generateAIMeeting,
   type AIMeetingResult,
   type MeetingTranscriptMessage,
@@ -267,11 +266,30 @@ export async function generateDbMeeting(meetingId: string) {
     return saveMeeting(result);
   }
 
-  const generated = await generateAIMeeting({
-    meetingId: meeting.id,
-    proxyA,
-    proxyB
-  }).catch(() => demoAIMeeting(meeting.id, proxyA, proxyB));
+  await db.meeting.update({
+    where: { id: meeting.id },
+    data: {
+      status: MeetingStatus.RUNNING,
+      startedAt: new Date()
+    }
+  });
+
+  let generated: AIMeetingResult;
+
+  try {
+    generated = await generateAIMeeting({
+      meetingId: meeting.id,
+      proxyA,
+      proxyB
+    });
+  } catch (error) {
+    await db.meeting.update({
+      where: { id: meeting.id },
+      data: { status: MeetingStatus.FAILED }
+    });
+
+    throw error;
+  }
 
   await saveGeneratedMeeting(generated);
 

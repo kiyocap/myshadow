@@ -468,7 +468,14 @@ export function CreateProxyFlow() {
     }
 
     if (!response.ok) {
-      setProfileError("Your Shadow is saved. Invite pairing is waiting for database setup.");
+      const data = (await response.json().catch(() => null)) as {
+        error?: string;
+      } | null;
+
+      setProfileError(
+        data?.error ??
+          "Your Shadow is saved, but the invite could not be connected. Please open the invite link again."
+      );
       return null;
     }
 

@@ -769,7 +769,7 @@ export async function generateAIMeeting({
   const client = getOpenAI();
 
   if (!client) {
-    return demoAIMeeting(meetingId, proxyA, proxyB);
+    throw new Error("OPENAI_API_KEY is required to generate a real AI meeting.");
   }
 
   const response = await client.chat.completions.create({
