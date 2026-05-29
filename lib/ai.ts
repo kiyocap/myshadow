@@ -758,14 +758,14 @@ export async function generateProxyProfile(
 }
 
 export async function generateAIMeeting({
-  meetingId = `meet-${Date.now()}`,
-  proxyA = demoProxyRepresentative("Hewie"),
-  proxyB = demoProxyRepresentative("Hayley")
+  meetingId,
+  proxyA,
+  proxyB
 }: {
-  meetingId?: string;
-  proxyA?: ProxyRepresentative;
-  proxyB?: ProxyRepresentative;
-} = {}): Promise<AIMeetingResult> {
+  meetingId: string;
+  proxyA: ProxyRepresentative;
+  proxyB: ProxyRepresentative;
+}): Promise<AIMeetingResult> {
   const client = getOpenAI();
 
   if (!client) {

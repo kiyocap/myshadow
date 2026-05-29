@@ -1,35 +1,15 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { demoAIMeeting, generateAIMeeting, type ProxyRepresentative } from "@/lib/ai";
+import { demoAIMeeting } from "@/lib/ai";
 import { generateDbMeeting, getMeetingReadiness } from "@/lib/db-meetings";
 import { saveMeeting } from "@/lib/meeting-store";
 
 export const maxDuration = 60;
 
-const proxyRepresentativeSchema = z.object({
-  name: z.string().min(1),
-  age: z.number().int().min(18).max(120).optional(),
-  occupation: z.string().optional(),
-  location: z.string().optional(),
-  values: z.array(z.string()),
-  traits: z.array(z.string()),
-  goals: z.array(z.string()),
-  communicationStyle: z.string(),
-  humourStyle: z.string(),
-  strengths: z.array(z.string()),
-  weaknesses: z.array(z.string()),
-  relationshipPreferences: z.array(z.string()),
-  summary: z.string()
-});
-
 const createMeetingSchema = z.object({
-  meetingId: z.string().min(1),
-  proxyAId: z.string().optional(),
-  proxyBId: z.string().optional(),
-  proxyA: proxyRepresentativeSchema.optional(),
-  proxyB: proxyRepresentativeSchema.optional()
-});
+  meetingId: z.string().min(1)
+}).strict();
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
@@ -42,8 +22,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const proxyA = parsed.data.proxyA as ProxyRepresentative | undefined;
-  const proxyB = parsed.data.proxyB as ProxyRepresentative | undefined;
   const meetingId = parsed.data.meetingId;
 
   if (meetingId === "demo") {
@@ -82,37 +60,11 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!proxyA || !proxyB) {
-    return NextResponse.json(
-      {
-        error:
-          "No paired invite was found for this meeting. Create an invite and wait for the other person to accept before starting."
-      },
-      { status: 404 }
-    );
-  }
-
-  let meeting;
-
-  try {
-    meeting = await generateAIMeeting({
-      meetingId,
-      proxyA,
-      proxyB
-    });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "AI meeting generation failed. Please retry in a moment."
-      },
-      { status: 502 }
-    );
-  }
-
-  saveMeeting(meeting);
-
-  return NextResponse.json(meeting);
+  return NextResponse.json(
+    {
+      error:
+        "No paired invite was found for this meeting. Create an invite and wait for the other person to accept before starting."
+    },
+    { status: 404 }
+  );
 }

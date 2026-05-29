@@ -10,6 +10,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "check:real-flow": "node scripts/check-real-flow.mjs",
+    "check:paired-meeting": "node scripts/check-paired-meeting.mjs",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"

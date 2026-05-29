@@ -62,6 +62,45 @@ await assertJson(
 );
 
 await assertJson(
+  "/api/meetings",
+  400,
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      meetingId: "manual-pairing-is-not-a-real-invite",
+      proxyA: {
+        name: "Hewie",
+        values: ["Depth"],
+        traits: ["Curious"],
+        goals: ["Build"],
+        communicationStyle: "Direct",
+        humourStyle: "Dry",
+        strengths: ["Focus"],
+        weaknesses: ["Impatient"],
+        relationshipPreferences: ["Honesty"],
+        summary: "Manual test participant"
+      },
+      proxyB: {
+        name: "Hayley",
+        values: ["Consistency"],
+        traits: ["Thoughtful"],
+        goals: ["Connection"],
+        communicationStyle: "Calm",
+        humourStyle: "Warm",
+        strengths: ["Care"],
+        weaknesses: ["Overthinks"],
+        relationshipPreferences: ["Reliability"],
+        summary: "Manual test participant"
+      }
+    })
+  },
+  (data) =>
+    data.error === "Invalid meeting request" &&
+    JSON.stringify(data.issues ?? {}).includes("Unrecognized key")
+);
+
+await assertJson(
   "/api/reports/live",
   404,
   undefined,
