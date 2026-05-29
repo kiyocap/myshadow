@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 export function SignInPanel({ callbackUrl = "/dashboard" }: { callbackUrl?: string }) {
   const [email, setEmail] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
 
   return (
     <div className="border border-border bg-white p-6 shadow-quiet-xl">
@@ -22,11 +24,31 @@ export function SignInPanel({ callbackUrl = "/dashboard" }: { callbackUrl?: stri
       </div>
       <form
         className="mt-8 space-y-4"
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault();
 
-          setNotice("Check your inbox for a secure Shadow sign-in link.");
-          signIn("email", { email, callbackUrl });
+          setSending(true);
+          setNotice(null);
+          setError(null);
+
+          const result = await signIn("email", {
+            email,
+            callbackUrl,
+            redirect: false
+          });
+
+          setSending(false);
+
+          if (result?.error) {
+            setError(
+              "The magic link could not be sent. Check the email address, then try again."
+            );
+            return;
+          }
+
+          setNotice(
+            `Magic link sent to ${email}. Check inbox and spam. The link can take a minute to arrive.`
+          );
         }}
       >
         <div className="space-y-2">
@@ -40,14 +62,19 @@ export function SignInPanel({ callbackUrl = "/dashboard" }: { callbackUrl?: stri
             required
           />
         </div>
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" disabled={sending}>
           <Mail className="h-4 w-4" />
-          Send magic link
+          {sending ? "Sending..." : "Send magic link"}
         </Button>
       </form>
       {notice && (
         <p className="mt-5 border-l border-blue-600 pl-3 text-sm leading-6 text-muted-foreground">
           {notice}
+        </p>
+      )}
+      {error && (
+        <p className="mt-5 border-l border-red-500 pl-3 text-sm leading-6 text-red-700">
+          {error}
         </p>
       )}
     </div>

@@ -24,7 +24,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         const resend = new Resend(process.env.RESEND_API_KEY);
-        await resend.emails.send({
+        const result = await resend.emails.send({
           from: provider.from,
           to: identifier,
           subject: "Your Shadow sign-in link",
@@ -35,6 +35,19 @@ export const authOptions: NextAuthOptions = {
               <p><a href="${url}" style="color:#2563eb">Sign in to Shadow</a></p>
             </div>
           `
+        });
+
+        if (result.error) {
+          console.error("Shadow magic link send failed", {
+            to: identifier,
+            error: result.error.message
+          });
+          throw new Error(result.error.message);
+        }
+
+        console.info("Shadow magic link send accepted", {
+          to: identifier,
+          id: result.data?.id ?? null
         });
       }
     })
