@@ -1,8 +1,14 @@
 import Link from "next/link";
+import type { Route } from "next";
+import { getServerSession } from "next-auth";
 import { ArrowRight, LockKeyhole, MessageCircle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { authOptions } from "@/lib/auth";
+import { ensureInviteForUser } from "@/lib/db-meetings";
+
+export const dynamic = "force-dynamic";
 
 export default async function InvitePage({
   params
@@ -10,6 +16,27 @@ export default async function InvitePage({
   params: Promise<{ code: string }>;
 }) {
   const { code } = await params;
+  const session = await getServerSession(authOptions);
+  const callbackUrl = `/invite/${encodeURIComponent(code)}`;
+  const inviteState = session?.user?.id
+    ? await ensureInviteForUser(code, session.user.id).catch((error) => ({
+        error:
+          error instanceof Error && error.message === "INVITE_FULL"
+            ? "This invite already has two Shadows connected."
+            : "This invite could not be connected. Ask for a fresh invite link."
+      }))
+    : null;
+  const hasShadow =
+    inviteState && "needsShadow" in inviteState ? !inviteState.needsShadow : false;
+  const isReady =
+    inviteState && "isReady" in inviteState ? inviteState.isReady : false;
+  const meetingHref =
+    inviteState && "meetingId" in inviteState && inviteState.meetingId
+      ? (`/meeting/${inviteState.meetingId}` as Route)
+      : null;
+  const participants =
+    inviteState && "participants" in inviteState ? inviteState.participants : [];
+  const inviteError = inviteState && "error" in inviteState ? inviteState.error : null;
 
   return (
     <main className="min-h-screen bg-background px-5 py-8 text-foreground sm:px-8">
@@ -23,9 +50,18 @@ export default async function InvitePage({
             <span className="text-sm font-semibold">Shadow</span>
           </div>
         </Link>
-        <Link className="text-sm text-muted-foreground hover:text-foreground" href="/signin">
-          Sign in
-        </Link>
+        {session?.user ? (
+          <Link className="text-sm text-muted-foreground hover:text-foreground" href="/dashboard">
+            Dashboard
+          </Link>
+        ) : (
+          <Link
+            className="text-sm text-muted-foreground hover:text-foreground"
+            href={`/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}
+          >
+            Sign in
+          </Link>
+        )}
       </div>
 
       <section className="mx-auto mt-16 grid max-w-5xl gap-10 lg:min-h-[440px] lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
@@ -39,13 +75,43 @@ export default async function InvitePage({
             will compare values, lifestyle, communication, conflict, ambition,
             and long-term goals before you decide what deserves attention.
           </p>
-          <div className="mt-10 w-full max-w-[300px]">
-            <Button asChild size="lg" className="w-full whitespace-nowrap">
-              <Link href={`/create-shadow?invite=${code}`}>
-                Create your Shadow <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
+          {inviteError ? (
+            <p className="mt-8 border-l border-blue-600 pl-3 text-sm leading-6 text-muted-foreground">
+              {inviteError}
+            </p>
+          ) : null}
+          <div className="mt-10 w-full max-w-[320px]">
+            {!session?.user ? (
+              <Button asChild size="lg" className="w-full whitespace-nowrap">
+                <Link href={`/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`}>
+                  Sign in to accept invite <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            ) : !hasShadow ? (
+              <Button asChild size="lg" className="w-full whitespace-nowrap">
+                <Link href={`/create-shadow?invite=${code}`}>
+                  Create your Shadow <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            ) : isReady && meetingHref ? (
+              <Button asChild size="lg" className="w-full whitespace-nowrap">
+                <Link href={meetingHref}>
+                  Start AI meeting <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            ) : (
+              <Button asChild size="lg" className="w-full whitespace-nowrap">
+                <Link href="/dashboard/meetings">
+                  Waiting for second Shadow <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            )}
           </div>
+          {participants.length > 0 ? (
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">
+              Connected Shadows: {participants.join(" and ")}.
+            </p>
+          ) : null}
         </div>
 
         <div className="w-full max-w-[520px] justify-self-center border border-border bg-white p-6 shadow-quiet-xl lg:justify-self-end">
@@ -56,7 +122,9 @@ export default async function InvitePage({
                 {code}
               </p>
             </div>
-            <Badge tone="dark">Ready</Badge>
+            <Badge tone={isReady ? "blue" : hasShadow ? "dark" : "neutral"}>
+              {isReady ? "Ready" : hasShadow ? "Accepted" : "Pending"}
+            </Badge>
           </div>
           <div className="mt-6 grid gap-3">
             <div className="border border-border p-4">
