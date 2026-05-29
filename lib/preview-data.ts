@@ -11,9 +11,9 @@ export const transcript = [
     content: "Hewie becomes obsessive when excited by a project, but that intensity is usually a signal of care."
   },
   {
-    speaker: "Emily AI",
+    speaker: "Hayley AI",
     topic: "Identity",
-    content: "Emily values consistency and predictability, especially when a connection starts to feel important."
+    content: "Hayley values consistency and predictability, especially when a connection starts to feel important."
   },
   {
     speaker: "Hewie AI",
@@ -21,9 +21,9 @@ export const transcript = [
     content: "Hewie is attracted to independence, but Hewie needs explicit signs that independence is not emotional withdrawal."
   },
   {
-    speaker: "Emily AI",
+    speaker: "Hayley AI",
     topic: "Communication",
-    content: "Emily responds best to calm specificity. Ambiguity makes Emily spend energy decoding rather than connecting."
+    content: "Hayley responds best to calm specificity. Ambiguity makes Hayley spend energy decoding rather than connecting."
   },
   {
     speaker: "Hewie AI",
@@ -31,16 +31,16 @@ export const transcript = [
     content: "Hewie will try to repair quickly, sometimes before the other person has had enough time to understand what they feel."
   },
   {
-    speaker: "Emily AI",
+    speaker: "Hayley AI",
     topic: "Long-Term Goals",
-    content: "Emily is not looking for performance. Emily is looking for a reliable private world with someone ambitious and kind."
+    content: "Hayley is not looking for performance. Hayley is looking for a reliable private world with someone ambitious and kind."
   }
 ];
 
 export const dashboardStats = [
   { label: "Meetings remaining", value: "3", detail: "Free plan" },
   { label: "Shadow confidence", value: "82%", detail: "Needs 2 more imports" },
-  { label: "Latest report", value: "87%", detail: "Emily AI" }
+  { label: "Latest report", value: "87%", detail: "Hayley AI" }
 ];
 
 export const activeTopics = meetingTopics.map((topic, index) => ({

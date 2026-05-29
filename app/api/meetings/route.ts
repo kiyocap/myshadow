@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     demoProxyRepresentative("Hewie");
   const proxyB =
     (parsed.data.proxyB as ProxyRepresentative | undefined) ??
-    demoProxyRepresentative("Emily");
+    demoProxyRepresentative("Hayley");
   const meetingId = parsed.data.meetingId ?? "live-demo";
 
   const meeting = await generateAIMeeting({

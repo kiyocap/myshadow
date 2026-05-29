@@ -87,7 +87,7 @@ function MeetingPreview({
   transcriptPreview: TranscriptPreviewLine[];
   profileName: string;
 }) {
-  const partnerName = latestMeeting?.participants.proxyBName ?? "Emily";
+  const partnerName = latestMeeting?.participants.proxyBName ?? "Hayley";
   const meetingId = latestMeeting?.id ?? "Preview";
   const sourceLabel =
     latestMeeting?.source === "openai"
@@ -200,7 +200,7 @@ export function DashboardHome({
   const profileName = localProfile?.name || "Hewie";
   const latestReport = latestMeeting?.report ?? fallbackReport;
   const latestHref = `/reports/${latestMeeting?.id ?? "demo"}` as Route;
-  const partnerName = latestMeeting?.participants.proxyBName ?? "Emily";
+  const partnerName = latestMeeting?.participants.proxyBName ?? "Hayley";
   const meetingRows = useMemo<MeetingRow[]>(
     () => [
       {

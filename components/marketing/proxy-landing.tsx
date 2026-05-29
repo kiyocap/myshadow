@@ -64,17 +64,17 @@ const meetingMoments = [
   {
     topic: "Values",
     left: "Hewie protects creative momentum and needs depth to feel fully present.",
-    right: "Emily reads consistency as care and trusts people who follow through quietly."
+    right: "Hayley reads consistency as care and trusts people who follow through quietly."
   },
   {
     topic: "Communication",
     left: "Hewie becomes direct when the stakes feel high, then softens once there is clarity.",
-    right: "Emily prefers earlier reassurance, especially before a problem becomes urgent."
+    right: "Hayley prefers earlier reassurance, especially before a problem becomes urgent."
   },
   {
     topic: "Ambition",
     left: "Hewie is energized by big work and can lose track of recovery time.",
-    right: "Emily admires drive when it still leaves room for rituals, rest and attention."
+    right: "Hayley admires drive when it still leaves room for rituals, rest and attention."
   }
 ];
 
@@ -293,7 +293,7 @@ function MeetingPreview() {
           <ProxyOrb label="Hewie AI" compact />
         </motion.div>
         <motion.div className="relative z-10" whileHover={{ y: -6, scale: 1.03 }}>
-          <ProxyOrb label="Emily AI" tone="violet" compact />
+          <ProxyOrb label="Hayley AI" tone="violet" compact />
         </motion.div>
       </div>
 
@@ -314,7 +314,7 @@ function MeetingPreview() {
         <div className="border border-white/10 bg-white/[0.06] p-4">
           <div className="mb-2 flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-violet-500" />
-            <p className="text-xs font-medium text-white/70">Emily AI</p>
+            <p className="text-xs font-medium text-white/70">Hayley AI</p>
           </div>
           <p className="text-sm leading-6 text-white/82">{moment.right}</p>
         </div>

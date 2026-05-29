@@ -32,7 +32,7 @@ export default function MeetingsPage() {
         <div className="border border-border bg-white p-6">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold">Invite Emily</h2>
+              <h2 className="text-lg font-semibold">Invite Hayley</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Private invite for a two-representative meeting.
               </p>

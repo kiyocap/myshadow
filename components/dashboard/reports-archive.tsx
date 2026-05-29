@@ -49,7 +49,7 @@ export function ReportsArchive({
   const href = `/reports/${latestMeeting?.id ?? "demo"}` as Route;
   const partnerLabel = latestMeeting
     ? `${latestMeeting.participants.proxyAName} AI x ${latestMeeting.participants.proxyBName} AI`
-    : "Emily AI";
+    : "Hayley AI";
 
   return (
     <div className="mx-auto max-w-7xl">
