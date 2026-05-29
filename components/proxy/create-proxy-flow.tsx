@@ -623,11 +623,14 @@ export function CreateProxyFlow() {
               response here. It gives Shadow a richer starting point without
               needing file uploads.
             </p>
-            <div className="mt-8 grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+            <div className="mt-8 space-y-5">
               <div className="border border-border bg-[#fafafa] p-5">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-sm font-semibold">Prompt for your AI</p>
+                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-blue-600">
+                      Step 1
+                    </p>
+                    <p className="mt-2 text-base font-semibold">Prompt for your AI</p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       Use this with ChatGPT, Claude, Gemini, or another LLM.
                     </p>
@@ -637,15 +640,28 @@ export function CreateProxyFlow() {
                     {copied ? "Copied" : "Copy"}
                   </Button>
                 </div>
-                <pre className="mt-5 max-h-[460px] overflow-auto whitespace-pre-wrap rounded-md border border-border bg-white p-4 text-xs leading-6 text-muted-foreground">
+                <pre className="mt-5 max-h-80 overflow-auto rounded-md border border-border bg-white p-5 text-sm leading-7 text-muted-foreground whitespace-pre-wrap">
                   {llmPrompt}
                 </pre>
               </div>
-              <div className="space-y-3">
-                <Label htmlFor="llm-import">Paste your AI's response</Label>
+
+              <div className="border border-border p-5">
+                <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-blue-600">
+                      Step 2
+                    </p>
+                    <Label className="mt-2 block text-base" htmlFor="llm-import">
+                      Paste your AI&apos;s response
+                    </Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Required before generating your profile.
+                  </p>
+                </div>
                 <Textarea
                   id="llm-import"
-                  className="min-h-[560px]"
+                  className="mt-5 min-h-80 resize-y"
                   placeholder="Paste the profile your AI generated here. Shadow will use this as extra personality signal for your representative."
                   required
                   value={llmImport}
@@ -655,7 +671,7 @@ export function CreateProxyFlow() {
                     setProfileStatus("idle");
                   }}
                 />
-                <p className="text-xs leading-5 text-muted-foreground">
+                <p className="mt-3 text-xs leading-5 text-muted-foreground">
                   Do not paste passwords, API keys, private financial details, or
                   anything you would not want used as personality context.
                 </p>
