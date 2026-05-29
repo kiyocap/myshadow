@@ -552,7 +552,7 @@ export function ProxyLanding() {
                 {index === 3 && <ReportPreview />}
 
                 {index === 4 && (
-                  <div className="mx-auto grid w-full max-w-3xl gap-6 lg:grid-cols-[1fr_0.75fr]">
+                  <div className="mx-auto grid w-full max-w-3xl gap-4 md:grid-cols-[0.9fr_1.1fr]">
                     <div className="border border-border bg-white p-6 shadow-quiet-xl">
                       <p className="text-sm text-muted-foreground">Your invite link</p>
                       <p className="mt-4 font-mono text-lg">shadow.to/hewie</p>
