@@ -13,6 +13,33 @@ export function SignInPanel({ callbackUrl = "/dashboard" }: { callbackUrl?: stri
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [continuing, setContinuing] = useState(false);
+
+  async function continueWithEmail() {
+    setContinuing(true);
+    setNotice(null);
+    setError(null);
+
+    const response = await fetch("/api/auth/instant-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, callbackUrl })
+    });
+    const data = (await response.json().catch(() => null)) as {
+      callbackUrl?: string;
+      error?: string;
+    } | null;
+
+    if (!response.ok) {
+      setContinuing(false);
+      setError(data?.error ?? "Could not continue with this email address.");
+      return;
+    }
+
+    window.location.href = data?.callbackUrl ?? callbackUrl;
+  }
 
   return (
     <div className="border border-border bg-white p-6 shadow-quiet-xl">
@@ -65,6 +92,15 @@ export function SignInPanel({ callbackUrl = "/dashboard" }: { callbackUrl?: stri
         <Button type="submit" className="w-full" disabled={sending}>
           <Mail className="h-4 w-4" />
           {sending ? "Sending..." : "Send magic link"}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full"
+          disabled={sending || continuing || !email}
+          onClick={continueWithEmail}
+        >
+          {continuing ? "Continuing..." : "Continue with email"}
         </Button>
       </form>
       {notice && (
