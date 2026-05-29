@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { CopyInviteButton } from "@/components/dashboard/copy-invite-button";
 import { activeTopics } from "@/lib/preview-data";
 
-const inviteLink = "shadow.ai/invite/PX-4829";
+const invitePath = "/invite/PX-4829";
 
 export default function MeetingsPage() {
   return (
@@ -32,16 +32,15 @@ export default function MeetingsPage() {
         <div className="border border-border bg-white p-6">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold">Invite Hayley</h2>
+              <h2 className="text-lg font-semibold">Invite anyone</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Private invite for a two-representative meeting.
+                Share a private link and let their representative meet yours.
               </p>
             </div>
             <Badge tone="dark">Ready</Badge>
           </div>
-          <div className="mt-8 flex items-center justify-between border border-border p-4">
-            <span className="truncate pr-4 font-mono text-sm">{inviteLink}</span>
-            <CopyInviteButton inviteLink={inviteLink} />
+          <div className="mt-8">
+            <CopyInviteButton invitePath={invitePath} />
           </div>
           <Button asChild className="mt-6 w-full">
             <Link href="/meeting/live">
