@@ -4,12 +4,12 @@ import { SignInPanel } from "@/components/auth/sign-in-panel";
 
 export const dynamic = "force-dynamic";
 
-export default function SignInPage() {
-  const providers = {
-    google: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
-    apple: Boolean(process.env.APPLE_CLIENT_ID && process.env.APPLE_CLIENT_SECRET),
-    email: Boolean(process.env.RESEND_API_KEY)
-  };
+export default async function SignInPage({
+  searchParams
+}: {
+  searchParams: Promise<{ callbackUrl?: string }>;
+}) {
+  const { callbackUrl } = await searchParams;
 
   return (
     <main className="min-h-screen bg-background px-5 py-8 sm:px-8">
@@ -29,10 +29,11 @@ export default function SignInPage() {
           </h1>
           <p className="mt-6 max-w-lg leading-7 text-muted-foreground">
             Shadow keeps imports, meetings, and reports behind explicit access.
-            Continue with a private provider or send yourself a secure magic link.
+            Send yourself a secure magic link. No Google or Apple account is
+            required.
           </p>
         </div>
-        <SignInPanel providers={providers} />
+        <SignInPanel callbackUrl={callbackUrl ?? "/dashboard"} />
       </section>
     </main>
   );

@@ -7,6 +7,7 @@ import {
   generateAIMeeting,
   type ProxyRepresentative
 } from "@/lib/ai";
+import { generateDbMeeting } from "@/lib/db-meetings";
 import { saveMeeting } from "@/lib/meeting-store";
 
 export const maxDuration = 60;
@@ -53,6 +54,11 @@ export async function POST(request: Request) {
     (parsed.data.proxyB as ProxyRepresentative | undefined) ??
     demoProxyRepresentative("Hayley");
   const meetingId = parsed.data.meetingId ?? "live-demo";
+  const dbMeeting = await generateDbMeeting(meetingId);
+
+  if (dbMeeting) {
+    return NextResponse.json(dbMeeting);
+  }
 
   const meeting = await generateAIMeeting({
     meetingId,

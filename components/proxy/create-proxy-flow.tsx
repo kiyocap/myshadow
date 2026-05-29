@@ -159,6 +159,7 @@ Be honest rather than flattering. Use concrete language. Do not invent facts you
 
 export function CreateProxyFlow() {
   const router = useRouter();
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [name, setName] = useState("Hewie");
   const [age, setAge] = useState("31");
@@ -186,6 +187,11 @@ export function CreateProxyFlow() {
   useEffect(() => {
     window.scrollTo({ top: 0 });
   }, [step]);
+
+  useEffect(() => {
+    const invite = new URLSearchParams(window.location.search).get("invite");
+    setInviteCode(invite);
+  }, []);
 
   useEffect(() => {
     if (profileStatus === "idle") {
@@ -390,11 +396,12 @@ export function CreateProxyFlow() {
     }
   }
 
-  function saveProxyLocally() {
+  function buildLocalProfile(): LocalProxyProfile {
     const importWordCount = llmImport.trim()
       ? llmImport.trim().split(/\s+/).length
       : 0;
-    const localProfile: LocalProxyProfile = {
+
+    return {
       name: name || "Your",
       age: Number(age) || undefined,
       occupation,
@@ -408,12 +415,67 @@ export function CreateProxyFlow() {
       source: profileStatus === "ready" ? "openai" : "demo",
       updatedAt: new Date().toISOString()
     };
+  }
 
+  function saveProxyLocally(localProfile: LocalProxyProfile) {
     window.localStorage.setItem(
       LOCAL_PROXY_PROFILE_KEY,
       JSON.stringify(localProfile)
     );
     window.localStorage.removeItem(LEGACY_LOCAL_PROXY_PROFILE_KEY);
+  }
+
+  async function saveProxyToAccount(localProfile: LocalProxyProfile) {
+    const response = await fetch("/api/shadow/profile", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        ...localProfile,
+        llmImport
+      })
+    });
+
+    if (response.status === 401) {
+      const callbackPath = inviteCode
+        ? `/create-shadow?invite=${encodeURIComponent(inviteCode)}`
+        : "/create-shadow";
+      router.push(`/signin?callbackUrl=${encodeURIComponent(callbackPath)}`);
+      return false;
+    }
+
+    if (!response.ok) {
+      setProfileError("Saved locally, but account sync is waiting for production database setup.");
+      return true;
+    }
+
+    return true;
+  }
+
+  async function acceptInvite() {
+    if (!inviteCode) return null;
+
+    const response = await fetch(`/api/invites/${encodeURIComponent(inviteCode)}/accept`, {
+      method: "POST"
+    });
+
+    if (response.status === 401) {
+      router.push(
+        `/signin?callbackUrl=${encodeURIComponent(`/create-shadow?invite=${inviteCode}`)}`
+      );
+      return null;
+    }
+
+    if (!response.ok) {
+      setProfileError("Your Shadow is saved. Invite pairing is waiting for database setup.");
+      return null;
+    }
+
+    return (await response.json()) as {
+      meetingId: string;
+      participantCount: number;
+    };
   }
 
   return (
@@ -750,8 +812,20 @@ export function CreateProxyFlow() {
                   return;
                 }
 
-                saveProxyLocally();
-                router.push("/dashboard/my-shadow");
+                const localProfile = buildLocalProfile();
+                saveProxyLocally(localProfile);
+
+                const saved = await saveProxyToAccount(localProfile);
+                if (!saved) return;
+
+                const invite = await acceptInvite();
+
+                if (invite?.participantCount && invite.participantCount >= 2) {
+                  router.push(`/meeting/${invite.meetingId}`);
+                  return;
+                }
+
+                router.push(inviteCode ? "/dashboard/meetings" : "/dashboard/my-shadow");
                 return;
               }
 

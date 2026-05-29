@@ -1,8 +1,6 @@
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import type { NextAuthOptions } from "next-auth";
-import AppleProvider from "next-auth/providers/apple";
 import EmailProvider from "next-auth/providers/email";
-import GoogleProvider from "next-auth/providers/google";
 import { Resend } from "resend";
 
 import { getPrisma } from "@/lib/prisma";
@@ -18,20 +16,11 @@ export const authOptions: NextAuthOptions = {
     signIn: "/signin"
   },
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? ""
-    }),
-    AppleProvider({
-      clientId: process.env.APPLE_CLIENT_ID ?? "",
-      clientSecret: process.env.APPLE_CLIENT_SECRET ?? ""
-    }),
     EmailProvider({
       from: process.env.EMAIL_FROM ?? "Shadow <hello@shadow.local>",
       async sendVerificationRequest({ identifier, url, provider }) {
         if (!process.env.RESEND_API_KEY) {
-          console.warn("RESEND_API_KEY is not configured; magic link not sent.");
-          return;
+          throw new Error("RESEND_API_KEY is required to send magic links.");
         }
 
         const resend = new Resend(process.env.RESEND_API_KEY);

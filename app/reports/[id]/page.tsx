@@ -1,5 +1,6 @@
 import { ReportView } from "@/components/reports/report-view";
 import { demoAIMeeting, generateAIMeeting } from "@/lib/ai";
+import { generateDbMeeting } from "@/lib/db-meetings";
 import { getStoredMeeting, saveMeeting } from "@/lib/meeting-store";
 
 export const dynamic = "force-dynamic";
@@ -11,8 +12,11 @@ export default async function ReportPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const storedMeeting = getStoredMeeting(id);
+  const dbMeeting = storedMeeting ? null : await generateDbMeeting(id);
   const meeting =
-    getStoredMeeting(id) ??
+    storedMeeting ??
+    dbMeeting ??
     (id === "demo"
       ? saveMeeting(demoAIMeeting(id))
       : await generateAIMeeting({ meetingId: id })
