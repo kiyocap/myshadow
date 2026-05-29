@@ -44,11 +44,18 @@ export default function MeetingsPage() {
           <div className="mt-8">
             <CopyInviteButton invitePath={invitePath} />
           </div>
-          <Button asChild className="mt-6 w-full">
+          <Button className="mt-6 w-full" disabled type="button">
+            Waiting for someone to accept
+          </Button>
+          <Button asChild variant="secondary" className="mt-3 w-full">
             <Link href="/meeting/live">
-              Start live AI meeting <ArrowRight className="h-4 w-4" />
+              Preview demo meeting <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
+          <p className="mt-3 text-xs leading-5 text-muted-foreground">
+            A live meeting starts only after both people have signed in, created
+            a Shadow, and joined this invite.
+          </p>
         </div>
 
         <div className="min-w-0 border border-border bg-white p-5 sm:p-6">
