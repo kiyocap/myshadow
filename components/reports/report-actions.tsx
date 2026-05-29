@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Download, Share2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,183 @@ const shareColors = [
 ] as const;
 
 type ShareColor = (typeof shareColors)[number];
+
+function triggerDownload(url: string, filename: string) {
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.rel = "noopener";
+  document.body.append(link);
+  link.click();
+  link.remove();
+}
+
+function normalizePdfText(value: string) {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\x20-\x7e]/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function escapePdfString(value: string) {
+  return normalizePdfText(value).replace(/[\\()]/g, "\\$&");
+}
+
+function wrapPdfText(value: string, maxLineLength: number) {
+  const words = normalizePdfText(value).split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let line = "";
+
+  for (const word of words) {
+    const next = line ? `${line} ${word}` : word;
+
+    if (next.length > maxLineLength && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = next;
+    }
+  }
+
+  if (line) lines.push(line);
+  return lines;
+}
+
+function createPdf(lines: Array<{ text: string; size?: number; gap?: number }>) {
+  const encoder = new TextEncoder();
+  const pageHeight = 792;
+  const pageWidth = 612;
+  const marginX = 56;
+  const topY = 736;
+  const bottomY = 56;
+  const pages: string[] = [];
+  let y = topY;
+  let content = "";
+
+  function addPage() {
+    if (content) {
+      pages.push(content);
+    }
+    content = "BT\n/F1 12 Tf\n";
+    y = topY;
+  }
+
+  function addLine(text: string, size = 11, gap = 17) {
+    if (y < bottomY) {
+      addPage();
+    }
+
+    content += `/F1 ${size} Tf\n${marginX} ${y} Td (${escapePdfString(text)}) Tj\n`;
+    y -= gap;
+  }
+
+  addPage();
+
+  for (const line of lines) {
+    addLine(line.text, line.size, line.gap);
+  }
+
+  if (content) {
+    pages.push(content);
+  }
+
+  const objects: string[] = [];
+  const pageRefs: string[] = [];
+  const fontObjectNumber = 3;
+
+  objects[0] = "<< /Type /Catalog /Pages 2 0 R >>";
+  objects[2] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>";
+
+  pages.forEach((pageContent, index) => {
+    const pageObjectNumber = 4 + index * 2;
+    const contentObjectNumber = pageObjectNumber + 1;
+    pageRefs.push(`${pageObjectNumber} 0 R`);
+    objects[pageObjectNumber - 1] =
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /Font << /F1 ${fontObjectNumber} 0 R >> >> /Contents ${contentObjectNumber} 0 R >>`;
+    objects[contentObjectNumber - 1] =
+      `<< /Length ${encoder.encode(pageContent).length} >>\nstream\n${pageContent}ET\nendstream`;
+  });
+
+  objects[1] = `<< /Type /Pages /Kids [${pageRefs.join(" ")}] /Count ${pageRefs.length} >>`;
+
+  const parts: string[] = [];
+  const offsets = [0];
+  let byteLength = 0;
+
+  function push(part: string) {
+    parts.push(part);
+    byteLength += encoder.encode(part).length;
+  }
+
+  push("%PDF-1.4\n");
+
+  objects.forEach((object, index) => {
+    offsets[index + 1] = byteLength;
+    push(`${index + 1} 0 obj\n${object}\nendobj\n`);
+  });
+
+  const xrefOffset = byteLength;
+  push(`xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`);
+  offsets.slice(1).forEach((offset) => {
+    push(`${String(offset).padStart(10, "0")} 00000 n \n`);
+  });
+  push(
+    `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`
+  );
+
+  return new Blob(parts, { type: "application/pdf" });
+}
+
+function buildReportPdf(report: CompatibilityReportData) {
+  const lines: Array<{ text: string; size?: number; gap?: number }> = [
+    { text: "Shadow Compatibility Report", size: 18, gap: 26 },
+    { text: "What Your AIs Learned", size: 24, gap: 34 },
+    { text: `Overall Compatibility: ${report.overallScore}%`, size: 16, gap: 26 },
+    { text: "Relationship Outlook", size: 14, gap: 22 },
+    ...wrapPdfText(report.relationshipOutlook, 82).map((text) => ({ text })),
+    { text: " ", gap: 14 },
+    {
+      text: `Scores: Communication ${report.communication} / Lifestyle ${report.lifestyle} / Values ${report.values} / Ambition ${report.ambition} / Conflict Resolution ${report.conflictResolution}`,
+      size: 11,
+      gap: 24
+    },
+    { text: "Green Flags", size: 14, gap: 22 },
+    ...report.greenFlags.flatMap((item) =>
+      wrapPdfText(`- ${item}`, 86).map((text) => ({ text }))
+    ),
+    { text: " ", gap: 14 },
+    { text: "Potential Friction", size: 14, gap: 22 },
+    ...report.potentialFriction.flatMap((item) =>
+      wrapPdfText(`- ${item}`, 86).map((text) => ({ text }))
+    ),
+    { text: " ", gap: 14 },
+    { text: "Questions To Discuss", size: 14, gap: 22 },
+    ...report.questionsToDiscuss.flatMap((item) =>
+      wrapPdfText(`- ${item}`, 86).map((text) => ({ text }))
+    ),
+    { text: " ", gap: 14 },
+    { text: "Suggested First Dates", size: 14, gap: 22 }
+  ];
+
+  report.suggestedFirstDates.forEach((date, index) => {
+    lines.push({ text: `Option ${index + 1}: ${date.title}`, size: 12, gap: 18 });
+    [
+      date.setting,
+      date.bestFor,
+      date.whyItFits,
+      date.whatToNotice,
+      date.logistics,
+      ...date.conversationPrompts.map((prompt) => `Bring up: ${prompt}`)
+    ].forEach((detail) => {
+      lines.push(...wrapPdfText(detail, 86).map((text) => ({ text })));
+    });
+    lines.push({ text: " ", gap: 14 });
+  });
+
+  return createPdf(lines);
+}
 
 function makeShareCardSvg(report: CompatibilityReportData, color: ShareColor) {
   const outlook = report.shareCardText
@@ -125,17 +302,52 @@ export function ReportHeaderActions({ report }: { report: CompatibilityReportDat
   );
 }
 
-export function DownloadPdfButton({ className }: { className?: string }) {
+export function DownloadPdfButton({
+  className,
+  report
+}: {
+  className?: string;
+  report: CompatibilityReportData;
+}) {
+  const [downloaded, setDownloaded] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const pdf = buildReportPdf(report);
+    const url = URL.createObjectURL(pdf);
+    setPdfUrl(url);
+
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [report]);
+
+  if (!pdfUrl) {
+    return (
+      <Button variant="secondary" size="sm" className={className} disabled type="button">
+        <Download className="h-4 w-4" />
+        Preparing PDF
+      </Button>
+    );
+  }
+
+  function markDownloaded() {
+    setDownloaded(true);
+    window.setTimeout(() => {
+      setDownloaded(false);
+    }, 1800);
+  }
+
   return (
-    <Button
-      variant="secondary"
-      size="sm"
-      className={className}
-      onClick={() => window.print()}
-      type="button"
-    >
-      <Download className="h-4 w-4" />
-      Download PDF
+    <Button asChild variant="secondary" size="sm" className={className}>
+      <a
+        href={pdfUrl}
+        download={`shadow-report-${report.overallScore}.pdf`}
+        onClick={markDownloaded}
+      >
+        {downloaded ? <Check className="h-4 w-4" /> : <Download className="h-4 w-4" />}
+        {downloaded ? "PDF Downloaded" : "Download PDF"}
+      </a>
     </Button>
   );
 }
@@ -204,16 +416,6 @@ export function ShareControls({ report }: { report: CompatibilityReportData }) {
     setActionError(null);
     setCopied(value);
     window.setTimeout(() => setCopied(null), 1800);
-  }
-
-  function triggerDownload(url: string, filename: string) {
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    link.rel = "noopener";
-    document.body.append(link);
-    link.click();
-    link.remove();
   }
 
   async function loadImage(url: string) {

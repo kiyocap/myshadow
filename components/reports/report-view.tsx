@@ -221,7 +221,7 @@ export function ReportView({
                 <Link href="/dashboard/meetings">Back to meetings</Link>
               </Button>
             </div>
-            <DownloadPdfButton className="print:hidden" />
+            <DownloadPdfButton report={report} className="print:hidden" />
           </div>
 
           <div className="grid gap-10 py-8 lg:grid-cols-[0.75fr_1.25fr] lg:items-center">
