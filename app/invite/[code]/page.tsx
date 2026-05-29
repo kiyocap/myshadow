@@ -28,8 +28,8 @@ export default async function InvitePage({
         </Link>
       </div>
 
-      <section className="mx-auto mt-16 grid max-w-5xl gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-        <div>
+      <section className="mx-auto mt-16 grid max-w-5xl gap-10 lg:min-h-[440px] lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
+        <div className="lg:pr-4">
           <Badge tone="blue">Private invite</Badge>
           <h1 className="mt-6 text-5xl font-semibold leading-[1.02] tracking-normal">
             You&apos;ve been invited to let your AIs meet first.
@@ -51,7 +51,7 @@ export default async function InvitePage({
           </div>
         </div>
 
-        <div className="border border-border bg-white p-6 shadow-quiet-xl">
+        <div className="w-full max-w-[520px] justify-self-center border border-border bg-white p-6 shadow-quiet-xl lg:justify-self-end">
           <div className="flex items-center justify-between border-b border-border pb-5">
             <div>
               <p className="text-sm font-semibold">Meeting invite</p>
