@@ -1,0 +1,231 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ImportType {
+  CHATGPT_EXPORT
+  WHATSAPP_EXPORT
+  JOURNAL_ENTRY
+  SOCIAL_PROFILE
+}
+
+enum MeetingStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum MeetingTopic {
+  IDENTITY
+  VALUES
+  LIFESTYLE
+  MONEY
+  FAMILY
+  COMMUNICATION
+  CONFLICT
+  AMBITION
+  LONG_TERM_GOALS
+}
+
+enum SubscriptionPlan {
+  FREE
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+  INCOMPLETE
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String?
+  email         String?        @unique
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  proxy         Proxy?
+  subscriptions Subscription[]
+  shareCards    ShareCard[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Proxy {
+  id                      String               @id @default(cuid())
+  userId                  String               @unique
+  user                    User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName             String
+  age                     Int?
+  occupation              String?
+  location                String?
+  motivation              String               @db.Text
+  frustrations            String               @db.Text
+  goals                   String               @db.Text
+  lookingFor              String               @db.Text
+  greatRelationship       String               @db.Text
+  values                  Json
+  traits                  Json
+  generatedProfile        Json
+  communicationStyle      String
+  humourStyle             String
+  strengths               Json
+  weaknesses              Json
+  relationshipPreferences Json
+  summary                 String               @db.Text
+  embeddingStatus         String               @default("pending")
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+  imports                 ProxyImport[]
+  embeddings              ProxyEmbedding[]
+  meetings                MeetingParticipant[]
+}
+
+model ProxyImport {
+  id        String     @id @default(cuid())
+  proxyId   String
+  proxy     Proxy      @relation(fields: [proxyId], references: [id], onDelete: Cascade)
+  type      ImportType
+  source    String?
+  rawText   String     @db.Text
+  createdAt DateTime   @default(now())
+}
+
+model ProxyEmbedding {
+  id        String   @id @default(cuid())
+  proxyId   String
+  proxy     Proxy    @relation(fields: [proxyId], references: [id], onDelete: Cascade)
+  source    String
+  chunkText String   @db.Text
+  vector    Float[]
+  createdAt DateTime @default(now())
+
+  @@index([proxyId])
+}
+
+model Meeting {
+  id            String                @id @default(cuid())
+  status        MeetingStatus         @default(QUEUED)
+  currentTopic  MeetingTopic          @default(IDENTITY)
+  inviteCode    String                @unique
+  createdAt     DateTime              @default(now())
+  startedAt     DateTime?
+  completedAt   DateTime?
+  participants  MeetingParticipant[]
+  messages      TranscriptMessage[]
+  report        CompatibilityReport?
+}
+
+model MeetingParticipant {
+  id        String  @id @default(cuid())
+  meetingId String
+  proxyId   String
+  role      String
+  meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  proxy     Proxy   @relation(fields: [proxyId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, proxyId])
+}
+
+model TranscriptMessage {
+  id          String        @id @default(cuid())
+  meetingId   String
+  proxyId     String?
+  speakerName String
+  topic       MeetingTopic
+  content     String        @db.Text
+  turn        Int
+  createdAt   DateTime      @default(now())
+  meeting     Meeting       @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@index([meetingId, turn])
+}
+
+model CompatibilityReport {
+  id                 String   @id @default(cuid())
+  meetingId          String   @unique
+  meeting            Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  overallScore       Int
+  communication      Int
+  lifestyle          Int
+  values             Int
+  ambition           Int
+  conflictResolution Int
+  greenFlags         Json
+  potentialFriction  Json
+  questionsToDiscuss Json
+  suggestedFirstDate String
+  suggestedFirstDates Json
+  relationshipOutlook String  @db.Text
+  shareCardText      String
+  createdAt          DateTime @default(now())
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                 SubscriptionPlan   @default(FREE)
+  status               SubscriptionStatus @default(ACTIVE)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  currentPeriodEnd     DateTime?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@index([userId])
+}
+
+model ShareCard {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reportId  String
+  text      String
+  imageUrl  String?
+  createdAt DateTime @default(now())
+}
