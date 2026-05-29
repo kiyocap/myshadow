@@ -250,55 +250,68 @@ function MeetingPreview() {
   const moment = meetingMoments[activeMoment];
 
   return (
-    <div className="relative mx-auto max-w-3xl border border-border bg-black p-8 text-white shadow-quiet-xl">
-      <div className="mb-6 flex flex-wrap items-center justify-center gap-2">
-        {meetingMoments.map((item, index) => (
-          <button
-            key={item.topic}
-            className={
-              activeMoment === index
-                ? "h-8 border border-white/25 bg-white px-3 text-xs font-medium text-black"
-                : "h-8 border border-white/15 px-3 text-xs text-white/60 transition hover:border-white/30 hover:text-white"
-            }
-            onClick={() => setActiveMoment(index)}
-            type="button"
-          >
-            {item.topic}
-          </button>
-        ))}
+    <div className="relative mx-auto max-w-3xl border border-border bg-black p-6 text-white shadow-quiet-xl sm:p-8">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[0.16em] text-white/40">
+            Live AI meeting
+          </p>
+          <p className="mt-2 text-sm text-white/65">Topic 3 of 8</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {meetingMoments.map((item, index) => (
+            <button
+              key={item.topic}
+              className={
+                activeMoment === index
+                  ? "h-8 border border-white/25 bg-white px-3 text-xs font-medium text-black"
+                  : "h-8 border border-white/15 px-3 text-xs text-white/60 transition hover:border-white/30 hover:text-white"
+              }
+              onClick={() => setActiveMoment(index)}
+              type="button"
+            >
+              {item.topic}
+            </button>
+          ))}
+        </div>
       </div>
-      <motion.div className="relative flex min-h-56 items-center justify-center">
-        <div className="absolute h-px w-52 bg-white/15" />
+
+      <div className="relative mx-auto flex min-h-40 max-w-xl items-center justify-between gap-8">
+        <div className="absolute left-[88px] right-[88px] top-16 h-px bg-white/15" />
         <motion.div
-          className="absolute h-px w-52 bg-blue-600"
-          animate={{ scaleX: [0.18, 1, 0.18], opacity: [0.2, 1, 0.2] }}
+          className="absolute left-[88px] right-[88px] top-16 h-px origin-left bg-blue-500"
+          animate={{ scaleX: [0.12, 1, 0.12], opacity: [0.25, 0.95, 0.25] }}
           transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
         />
-        <motion.div whileHover={{ y: -6, scale: 1.03 }}>
+        <motion.div className="relative z-10" whileHover={{ y: -6, scale: 1.03 }}>
           <ProxyOrb label="Hewie AI" compact />
         </motion.div>
-        <div className="w-16" />
-        <motion.div whileHover={{ y: -6, scale: 1.03 }}>
+        <motion.div className="relative z-10" whileHover={{ y: -6, scale: 1.03 }}>
           <ProxyOrb label="Emily AI" tone="violet" compact />
         </motion.div>
-        <motion.span
-          key={`${moment.topic}-left`}
-          className="absolute left-1/2 top-8 max-w-[260px] -translate-x-1/2 rounded-md border border-white/10 bg-white/10 px-3 py-2 text-center text-xs leading-5 text-white/80"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25 }}
-        >
-          {moment.left}
-        </motion.span>
-        <motion.span
-          key={`${moment.topic}-right`}
-          className="absolute bottom-8 left-1/2 max-w-[260px] -translate-x-1/2 rounded-md border border-white/10 bg-white/10 px-3 py-2 text-center text-xs leading-5 text-white/80"
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25 }}
-        >
-          {moment.right}
-        </motion.span>
+      </div>
+
+      <motion.div
+        key={moment.topic}
+        className="mt-8 grid gap-3"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+      >
+        <div className="border border-white/10 bg-white/[0.06] p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-blue-500" />
+            <p className="text-xs font-medium text-white/70">Hewie AI</p>
+          </div>
+          <p className="text-sm leading-6 text-white/82">{moment.left}</p>
+        </div>
+        <div className="border border-white/10 bg-white/[0.06] p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-violet-500" />
+            <p className="text-xs font-medium text-white/70">Emily AI</p>
+          </div>
+          <p className="text-sm leading-6 text-white/82">{moment.right}</p>
+        </div>
       </motion.div>
     </div>
   );
