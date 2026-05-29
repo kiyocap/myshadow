@@ -198,7 +198,7 @@ export function MeetingRoom({ meetingId }: { meetingId: string }) {
       </header>
 
       <section className="mx-auto grid max-w-7xl gap-8 px-5 py-8 sm:px-8 xl:grid-cols-[0.95fr_1.05fr]">
-        <div className="border border-border bg-white p-6">
+        <div className="order-2 border border-border bg-white p-5 sm:p-6 xl:order-1">
           <div className="flex items-start justify-between gap-4">
             <div>
               <Badge tone={completed ? "blue" : "dark"}>
@@ -221,7 +221,7 @@ export function MeetingRoom({ meetingId }: { meetingId: string }) {
             </div>
           </div>
 
-          <div className="relative mt-10 flex min-h-[360px] flex-col items-center justify-center gap-10 overflow-hidden border-y border-border py-8 sm:flex-row sm:gap-0 sm:py-0">
+          <div className="relative mt-8 flex min-h-[260px] flex-col items-center justify-center gap-8 overflow-hidden border-y border-border py-8 sm:mt-10 sm:min-h-[360px] sm:flex-row sm:gap-0 sm:py-0">
             <div className="absolute hidden h-px w-[62%] bg-blue-600/30 sm:block" />
             <div className="absolute h-[62%] w-px bg-blue-600/30 sm:hidden" />
             <motion.div
@@ -277,7 +277,7 @@ export function MeetingRoom({ meetingId }: { meetingId: string }) {
           </div>
         </div>
 
-        <aside className="border border-border bg-white p-6">
+        <aside className="order-1 border border-border bg-white p-5 sm:p-6 xl:order-2">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold">Live transcript</h2>
@@ -292,7 +292,7 @@ export function MeetingRoom({ meetingId }: { meetingId: string }) {
             </Button>
           </div>
 
-          <div className="mt-8 max-h-[640px] space-y-5 overflow-y-auto pr-2">
+          <div className="mt-6 max-h-[60vh] space-y-5 overflow-y-auto pr-2 sm:mt-8 xl:max-h-[640px]">
             {loading && (
               <div className="space-y-4">
                 {Array.from({ length: 5 }).map((_, index) => (

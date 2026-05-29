@@ -1,14 +1,31 @@
 import Link from "next/link";
+import { getServerSession } from "next-auth";
 import { ArrowRight, Plus } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CopyInviteButton } from "@/components/dashboard/copy-invite-button";
+import { authOptions } from "@/lib/auth";
+import { ensureInviteForUser } from "@/lib/db-meetings";
 import { activeTopics } from "@/lib/preview-data";
 
 const invitePath = "/invite/PX-4829";
 
-export default function MeetingsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function MeetingsPage() {
+  const session = await getServerSession(authOptions);
+  const inviteState = session?.user?.id
+    ? await ensureInviteForUser("PX-4829", session.user.id).catch(() => null)
+    : null;
+  const readyMeetingHref = inviteState?.meetingId
+    ? (`/meeting/${inviteState.meetingId}` as const)
+    : null;
+  const participantSummary =
+    inviteState?.participants && inviteState.participants.length > 0
+      ? inviteState.participants.join(" and ")
+      : "Your Shadow";
+
   return (
     <div className="mx-auto w-full max-w-7xl overflow-hidden">
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
@@ -23,7 +40,7 @@ export default function MeetingsPage() {
           </p>
         </div>
         <Button asChild className="w-full md:w-auto">
-          <Link href="/meeting/live">
+          <Link href={readyMeetingHref ?? "/invite/PX-4829"}>
             <Plus className="h-4 w-4" />
             New AI meeting
           </Link>
@@ -36,25 +53,37 @@ export default function MeetingsPage() {
             <div className="min-w-0">
               <h2 className="text-lg font-semibold">Invite anyone</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Share a private link and let their representative meet yours.
+                Share a private link. A real meeting begins only after they
+                accept and create their own Shadow.
               </p>
             </div>
-            <Badge tone="dark">Ready</Badge>
+            <Badge tone={inviteState?.isReady ? "blue" : "dark"}>
+              {inviteState?.isReady ? "Ready" : "Waiting"}
+            </Badge>
           </div>
           <div className="mt-8">
             <CopyInviteButton invitePath={invitePath} />
           </div>
-          <Button className="mt-6 w-full" disabled type="button">
-            Waiting for someone to accept
-          </Button>
+          {inviteState?.isReady && readyMeetingHref ? (
+            <Button asChild className="mt-6 w-full">
+              <Link href={readyMeetingHref}>
+                Start live AI meeting <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          ) : (
+            <Button className="mt-6 w-full" disabled type="button">
+              Waiting for someone to accept
+            </Button>
+          )}
           <Button asChild variant="secondary" className="mt-3 w-full">
             <Link href="/meeting/live">
               Preview demo meeting <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
           <p className="mt-3 text-xs leading-5 text-muted-foreground">
-            A live meeting starts only after both people have signed in, created
-            a Shadow, and joined this invite.
+            {inviteState?.isReady
+              ? `${participantSummary} are connected on this invite.`
+              : "You are not meeting Hayley here. Your friend has to sign in, create a Shadow, and accept this invite first."}
           </p>
         </div>
 

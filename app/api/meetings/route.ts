@@ -7,7 +7,7 @@ import {
   generateAIMeeting,
   type ProxyRepresentative
 } from "@/lib/ai";
-import { generateDbMeeting } from "@/lib/db-meetings";
+import { generateDbMeeting, getMeetingReadiness } from "@/lib/db-meetings";
 import { saveMeeting } from "@/lib/meeting-store";
 
 export const maxDuration = 60;
@@ -58,6 +58,18 @@ export async function POST(request: Request) {
 
   if (dbMeeting) {
     return NextResponse.json(dbMeeting);
+  }
+
+  const readiness = await getMeetingReadiness(meetingId);
+
+  if (readiness && !readiness.isReady) {
+    return NextResponse.json(
+      {
+        error:
+          "This invite is still waiting for the second person to create a Shadow and accept."
+      },
+      { status: 409 }
+    );
   }
 
   const meeting = await generateAIMeeting({

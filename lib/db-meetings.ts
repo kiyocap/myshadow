@@ -71,6 +71,89 @@ export async function acceptInviteForUser(inviteCode: string, userId: string) {
   return { meetingId: meeting.id, participantCount };
 }
 
+export async function ensureInviteForUser(inviteCode: string, userId: string) {
+  if (!databaseReady()) {
+    return null;
+  }
+
+  const db = getPrisma();
+  const proxy = await db.proxy.findUnique({ where: { userId } });
+
+  if (!proxy) {
+    const existingMeeting = await db.meeting.findUnique({
+      where: { inviteCode },
+      include: {
+        participants: {
+          orderBy: { role: "asc" },
+          include: { proxy: true }
+        }
+      }
+    });
+
+    return existingMeeting
+      ? meetingStateFromRecord(existingMeeting)
+      : {
+          inviteCode,
+          meetingId: null,
+          participantCount: 0,
+          isReady: false,
+          participants: [] as string[],
+          needsShadow: true
+        };
+  }
+
+  const joined = await acceptInviteForUser(inviteCode, userId);
+  const meeting = await db.meeting.findUnique({
+    where: { id: joined.meetingId },
+    include: {
+      participants: {
+        orderBy: { role: "asc" },
+        include: { proxy: true }
+      }
+    }
+  });
+
+  return meeting ? meetingStateFromRecord(meeting) : null;
+}
+
+export async function getMeetingReadiness(meetingId: string) {
+  if (!databaseReady()) {
+    return null;
+  }
+
+  const db = getPrisma();
+  const meeting = await db.meeting.findUnique({
+    where: { id: meetingId },
+    include: {
+      participants: {
+        orderBy: { role: "asc" },
+        include: { proxy: true }
+      }
+    }
+  });
+
+  return meeting ? meetingStateFromRecord(meeting) : null;
+}
+
+function meetingStateFromRecord(meeting: {
+  id: string;
+  inviteCode: string;
+  participants: Array<{ proxy: { displayName: string } }>;
+}) {
+  const participants = meeting.participants.map(
+    (participant) => participant.proxy.displayName
+  );
+
+  return {
+    inviteCode: meeting.inviteCode,
+    meetingId: meeting.id,
+    participantCount: participants.length,
+    isReady: participants.length >= 2,
+    participants,
+    needsShadow: false
+  };
+}
+
 async function saveGeneratedMeeting(meeting: AIMeetingResult) {
   const db = getPrisma();
   await db.meeting.update({
