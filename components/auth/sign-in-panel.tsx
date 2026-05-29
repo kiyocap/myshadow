@@ -13,6 +13,33 @@ export function SignInPanel({ callbackUrl = "/dashboard" }: { callbackUrl?: stri
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [usingDemoAccess, setUsingDemoAccess] = useState(false);
+
+  async function continueWithDemoAccess() {
+    setUsingDemoAccess(true);
+    setNotice(null);
+    setError(null);
+
+    const response = await fetch("/api/auth/demo-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, callbackUrl })
+    });
+    const data = (await response.json().catch(() => null)) as {
+      callbackUrl?: string;
+      error?: string;
+    } | null;
+
+    if (!response.ok) {
+      setUsingDemoAccess(false);
+      setError(data?.error ?? "Demo access is not available.");
+      return;
+    }
+
+    window.location.href = data?.callbackUrl ?? callbackUrl;
+  }
 
   return (
     <div className="border border-border bg-white p-6 shadow-quiet-xl">
@@ -20,6 +47,9 @@ export function SignInPanel({ callbackUrl = "/dashboard" }: { callbackUrl?: stri
         <h2 className="text-xl font-semibold">Continue to Shadow</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
           Enter your email and we&apos;ll send a secure sign-in link.
+        </p>
+        <p className="mt-3 border-l border-blue-600 pl-3 text-xs leading-5 text-muted-foreground">
+          Dinner demo: if the magic link is blocked, use demo access below.
         </p>
       </div>
       <form
@@ -62,9 +92,22 @@ export function SignInPanel({ callbackUrl = "/dashboard" }: { callbackUrl?: stri
             required
           />
         </div>
-        <Button type="submit" className="w-full" disabled={sending || !email}>
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={sending || usingDemoAccess || !email}
+        >
           <Mail className="h-4 w-4" />
           {sending ? "Sending..." : "Send magic link"}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          className="w-full"
+          disabled={sending || usingDemoAccess || !email}
+          onClick={continueWithDemoAccess}
+        >
+          {usingDemoAccess ? "Continuing..." : "Use demo access"}
         </Button>
       </form>
       {notice && (
