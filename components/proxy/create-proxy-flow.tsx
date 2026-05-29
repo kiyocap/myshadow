@@ -443,6 +443,7 @@ export function CreateProxyFlow() {
                   }}
                 >
                   <option value="">Select type</option>
+                  <option value="I don't know">I don't know</option>
                   {myersBriggsTypes.map((type) => (
                     <option key={type} value={type}>
                       {type}
