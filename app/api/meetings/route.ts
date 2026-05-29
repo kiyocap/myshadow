@@ -28,7 +28,7 @@ const proxyRepresentativeSchema = z.object({
 });
 
 const createMeetingSchema = z.object({
-  meetingId: z.string().optional(),
+  meetingId: z.string().min(1),
   proxyAId: z.string().optional(),
   proxyBId: z.string().optional(),
   proxyA: proxyRepresentativeSchema.optional(),
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
 
   const proxyA = parsed.data.proxyA as ProxyRepresentative | undefined;
   const proxyB = parsed.data.proxyB as ProxyRepresentative | undefined;
-  const meetingId = parsed.data.meetingId ?? "demo";
+  const meetingId = parsed.data.meetingId;
 
   if (meetingId === "demo") {
     return NextResponse.json(saveMeeting(demoAIMeeting(meetingId)));

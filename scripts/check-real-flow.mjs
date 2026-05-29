@@ -51,6 +51,17 @@ await assertJson(
 );
 
 await assertJson(
+  "/api/meetings",
+  400,
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({})
+  },
+  (data) => data.error === "Invalid meeting request"
+);
+
+await assertJson(
   "/api/reports/live",
   404,
   undefined,
