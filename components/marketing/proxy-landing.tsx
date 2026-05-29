@@ -3,7 +3,13 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import {
+  motion,
+  useMotionValue,
+  useScroll,
+  useSpring,
+  useTransform
+} from "framer-motion";
 import {
   ArrowRight,
   Check,
@@ -387,6 +393,8 @@ export function ProxyLanding() {
     stiffness: 70,
     damping: 22
   });
+  const { scrollYProgress } = useScroll();
+  const timelineScale = useTransform(scrollYProgress, [0.16, 0.74], [0, 1]);
 
   return (
     <main className="bg-background text-foreground">
@@ -476,8 +484,15 @@ export function ProxyLanding() {
 
       <section id="how" className="border-y border-border px-5 sm:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="relative">
+          <motion.div
+            className="group/timeline relative"
+          >
             <div className="absolute bottom-0 left-1 top-0 hidden w-px bg-border md:block" />
+            <motion.div
+              className="absolute bottom-0 left-1 top-0 hidden w-px origin-top bg-blue-600 md:block"
+              style={{ scaleY: timelineScale }}
+              aria-hidden="true"
+            />
             {sections.map((section, index) => (
               <motion.article
                 key={section.title}
@@ -487,7 +502,16 @@ export function ProxyLanding() {
                 viewport={{ once: true, margin: "-80px" }}
               >
                 <div className="relative">
-                  <span className="absolute -left-[45px] top-8 hidden h-3 w-3 rounded-full border border-blue-500 bg-white md:block" />
+                  <motion.span
+                    className="absolute -left-[45px] top-8 hidden h-3 w-3 rounded-full border border-blue-500 bg-white md:block"
+                    whileInView={{
+                      backgroundColor: "#2563eb",
+                      boxShadow: "0 0 0 5px rgba(37,99,235,0.12)"
+                    }}
+                    viewport={{ amount: 0.75, margin: "-40% 0px -40% 0px" }}
+                    transition={{ duration: 0.2 }}
+                    aria-hidden="true"
+                  />
                   <p className="text-xs font-semibold text-muted-foreground">
                     {section.kicker}
                   </p>
@@ -576,7 +600,7 @@ export function ProxyLanding() {
                 )}
               </motion.article>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
