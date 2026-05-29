@@ -34,11 +34,14 @@ export function CopyInviteButton({ invitePath }: { invitePath: string }) {
   }
 
   return (
-    <div className="flex items-center justify-between gap-3 border border-border p-4">
-      <span className="min-w-0 truncate pr-2 font-mono text-sm">{inviteLink}</span>
+    <div className="grid min-w-0 gap-3 border border-border p-4 sm:flex sm:items-center sm:justify-between">
+      <span className="block min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-xs sm:pr-2 sm:text-sm">
+        {inviteLink}
+      </span>
       <Button
         variant="secondary"
         size="sm"
+        className="w-full sm:w-auto"
         aria-label={copied ? "Invite link copied" : "Copy invite link"}
         onClick={copyInvite}
         type="button"

@@ -6,7 +6,7 @@ import { DashboardMobileNav, DashboardNav } from "@/components/dashboard/dashboa
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#f8f8f8]">
+    <div className="min-h-screen overflow-x-hidden bg-[#f8f8f8]">
       <aside className="fixed inset-y-0 left-0 hidden w-56 border-r border-border bg-white px-4 py-5 lg:block">
         <Link href="/" className="flex items-center gap-2 text-sm font-semibold">
           <span className="relative flex h-6 w-6 items-center justify-center rounded-full border border-black/25">
@@ -37,7 +37,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <div className="lg:pl-56">
+      <div className="min-w-0 lg:pl-56">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-white/90 px-5 backdrop-blur sm:px-8">
           <div className="min-w-0">
             <p className="text-xs text-muted-foreground">Shadow OS</p>
@@ -59,7 +59,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         <DashboardMobileNav />
-        <main className="px-5 py-8 sm:px-8">{children}</main>
+        <main className="max-w-full overflow-x-hidden px-4 py-8 sm:px-8">
+          {children}
+        </main>
       </div>
     </div>
   );

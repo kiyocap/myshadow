@@ -58,7 +58,7 @@ export function DashboardMobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex gap-2 overflow-x-auto border-b border-border bg-white px-5 py-3 sm:px-8 lg:hidden">
+    <nav className="flex max-w-full gap-2 overflow-x-auto border-b border-border bg-white px-4 py-3 sm:px-8 lg:hidden">
       {navItems.map((item) => {
         const Icon = item.icon;
         const active =
