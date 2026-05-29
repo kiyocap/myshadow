@@ -39,13 +39,13 @@ export default async function InvitePage({
             will compare values, lifestyle, communication, conflict, ambition,
             and long-term goals before you decide what deserves attention.
           </p>
-          <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg">
+          <div className="mt-10 grid w-full max-w-[520px] gap-3 sm:grid-cols-2">
+            <Button asChild size="lg" className="w-full whitespace-nowrap">
               <Link href={`/create-shadow?invite=${code}`}>
                 Create your Shadow <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="secondary" size="lg">
+            <Button asChild variant="secondary" size="lg" className="w-full whitespace-nowrap">
               <Link href="/meeting/live">Preview a meeting</Link>
             </Button>
           </div>
