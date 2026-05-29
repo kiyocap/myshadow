@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Check, Download, Share2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -142,31 +142,100 @@ export function DownloadPdfButton({ className }: { className?: string }) {
 
 export function ShareControls({ report }: { report: CompatibilityReportData }) {
   const [copied, setCopied] = useState<"text" | "link" | "download" | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<ShareColor>(shareColors[0]);
+  const shareTextRef = useRef<HTMLTextAreaElement>(null);
   const shareText = useMemo(() => report.shareCardText, [report.shareCardText]);
   const shareCardDescription =
     shareText.replace(/^Your AIs are \d+% compatible\.\s*/i, "").trim() ||
     "Strong potential for a meaningful connection.";
 
-  async function copy(value: "text" | "link") {
-    const text = value === "text" ? shareText : window.location.href;
+  async function writeClipboard(text: string) {
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        // Fall through to the textarea fallback for browsers that block clipboard.
+      }
+    }
 
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    textarea.style.top = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    let copiedToClipboard = false;
     try {
-      await navigator.clipboard.writeText(text);
+      copiedToClipboard = document.execCommand("copy");
     } catch {
-      const textarea = document.createElement("textarea");
-      textarea.value = text;
-      textarea.setAttribute("readonly", "");
-      textarea.style.position = "fixed";
-      textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
+      copiedToClipboard = false;
+    } finally {
       textarea.remove();
     }
 
+    return copiedToClipboard;
+  }
+
+  async function copy(value: "text" | "link") {
+    const text = value === "text" ? shareText : window.location.href;
+    const didCopy = await writeClipboard(text);
+
+    if (!didCopy) {
+      if (value === "text") {
+        shareTextRef.current?.focus();
+        shareTextRef.current?.select();
+      }
+
+      setActionError(
+        value === "text"
+          ? "Your browser blocked automatic copying, so the share text has been selected for you."
+          : "Your browser blocked link copying. Copy the page URL from the address bar."
+      );
+      window.setTimeout(() => setActionError(null), 3200);
+      return;
+    }
+
+    setActionError(null);
     setCopied(value);
     window.setTimeout(() => setCopied(null), 1800);
+  }
+
+  function triggerDownload(url: string, filename: string) {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.rel = "noopener";
+    document.body.append(link);
+    link.click();
+    link.remove();
+  }
+
+  async function loadImage(url: string) {
+    const image = new Image();
+    image.decoding = "async";
+    image.src = url;
+
+    if (image.decode) {
+      try {
+        await image.decode();
+        return image;
+      } catch {
+        // Safari can reject decode for blob-backed SVGs even when onload works.
+      }
+    }
+
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error("Image could not be prepared"));
+    });
+
+    return image;
   }
 
   async function downloadImage() {
@@ -176,11 +245,7 @@ export function ShareControls({ report }: { report: CompatibilityReportData }) {
     );
 
     try {
-      const image = new Image();
-      image.decoding = "async";
-      image.src = svgUrl;
-      await image.decode();
-
+      const image = await loadImage(svgUrl);
       const canvas = document.createElement("canvas");
       canvas.width = 1200;
       canvas.height = 1500;
@@ -192,23 +257,25 @@ export function ShareControls({ report }: { report: CompatibilityReportData }) {
 
       context.drawImage(image, 0, 0);
       const pngUrl = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.href = pngUrl;
-      link.download = `shadow-${report.overallScore}-compatible.png`;
-      document.body.append(link);
-      link.click();
-      link.remove();
+      triggerDownload(pngUrl, `shadow-${report.overallScore}-compatible.png`);
       setCopied("download");
+      setActionError(null);
       window.setTimeout(() => setCopied(null), 1800);
+    } catch {
+      triggerDownload(svgUrl, `shadow-${report.overallScore}-compatible.svg`);
+      setCopied("download");
+      setActionError("PNG was blocked by this browser, so Shadow downloaded an SVG instead.");
+      window.setTimeout(() => setCopied(null), 1800);
+      window.setTimeout(() => setActionError(null), 3600);
     } finally {
-      URL.revokeObjectURL(svgUrl);
+      window.setTimeout(() => URL.revokeObjectURL(svgUrl), 1000);
     }
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+    <div className="grid min-w-0 gap-6 lg:grid-cols-[360px_1fr]">
       <div
-        className="rounded-lg border p-6"
+        className="min-w-0 rounded-lg border p-6"
         style={{
           backgroundColor: selectedColor.background,
           borderColor:
@@ -251,7 +318,7 @@ export function ShareControls({ report }: { report: CompatibilityReportData }) {
         </div>
         <Button className="w-full" onClick={downloadImage} type="button">
           {copied === "download" ? <Check className="h-4 w-4" /> : null}
-          {copied === "download" ? "Image Downloaded" : "Download PNG"}
+          {copied === "download" ? "Image Downloaded" : "Download Image"}
         </Button>
         <Button variant="secondary" className="w-full" onClick={() => copy("link")} type="button">
           {copied === "link" ? <Check className="h-4 w-4" /> : null}
@@ -261,9 +328,30 @@ export function ShareControls({ report }: { report: CompatibilityReportData }) {
           {copied === "text" ? <Check className="h-4 w-4" /> : null}
           {copied === "text" ? "Copied Text" : "Copy Share Text"}
         </Button>
+        <label className="block space-y-2">
+          <span className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+            Share text
+          </span>
+          <textarea
+            ref={shareTextRef}
+            className="min-h-24 w-full resize-none border border-border bg-white p-3 text-sm leading-6 text-foreground outline-none transition focus:border-blue-600"
+            readOnly
+            value={shareText}
+          />
+        </label>
         <p className="text-xs leading-5 text-muted-foreground">
           PNG is sized for sharing. Copy Link shares this report page; Copy Share
           Text copies the compatibility line.
+        </p>
+        <p aria-live="polite" className="min-h-5 text-xs leading-5 text-muted-foreground">
+          {actionError ??
+            (copied === "download"
+              ? "Share image saved."
+              : copied === "link"
+                ? "Report link copied."
+                : copied === "text"
+                  ? "Share text copied."
+                  : "")}
         </p>
       </div>
     </div>

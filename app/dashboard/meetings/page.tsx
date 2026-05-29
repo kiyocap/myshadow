@@ -22,6 +22,7 @@ export default async function MeetingsPage() {
   const readyMeetingHref = inviteState?.meetingId
     ? (`/meeting/${inviteState.meetingId}` as const)
     : null;
+  const needsShadow = inviteState?.needsShadow ?? !inviteState?.meetingId;
   const participantSummary =
     inviteState?.participants && inviteState.participants.length > 0
       ? inviteState.participants.join(" and ")
@@ -41,9 +42,9 @@ export default async function MeetingsPage() {
           </p>
         </div>
         <Button asChild className="w-full md:w-auto">
-          <Link href={readyMeetingHref ?? invitePath}>
+          <Link href={needsShadow ? "/create-shadow" : readyMeetingHref ?? invitePath}>
             <Plus className="h-4 w-4" />
-            New AI meeting
+            {needsShadow ? "Create Shadow" : "New AI meeting"}
           </Link>
         </Button>
       </div>
@@ -58,26 +59,38 @@ export default async function MeetingsPage() {
                 accept and create their own Shadow.
               </p>
             </div>
-            <Badge tone={inviteState?.isReady ? "blue" : "dark"}>
-              {inviteState?.isReady ? "Ready" : "Waiting"}
+            <Badge
+              tone={needsShadow ? "neutral" : inviteState?.isReady ? "blue" : "dark"}
+            >
+              {needsShadow ? "Shadow required" : inviteState?.isReady ? "Ready" : "Waiting"}
             </Badge>
           </div>
-          <div className="mt-8">
-            <CopyInviteButton invitePath={invitePath} />
-          </div>
-          {inviteState?.isReady && readyMeetingHref ? (
+          {needsShadow ? (
+            <Button asChild className="mt-8 w-full">
+              <Link href="/create-shadow">
+                Create your Shadow first <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          ) : (
+            <div className="mt-8">
+              <CopyInviteButton invitePath={invitePath} />
+            </div>
+          )}
+          {!needsShadow && inviteState?.isReady && readyMeetingHref ? (
             <Button asChild className="mt-6 w-full">
               <Link href={readyMeetingHref}>
                 Start live AI meeting <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
-          ) : (
+          ) : !needsShadow ? (
             <Button className="mt-6 w-full" disabled type="button">
               Waiting for someone to accept
             </Button>
-          )}
+          ) : null}
           <p className="mt-3 text-xs leading-5 text-muted-foreground">
-            {inviteState?.isReady
+            {needsShadow
+              ? "Create your own Shadow before sharing an invite. That makes sure your friend meets your AI, not an empty invite."
+              : inviteState?.isReady
               ? `${participantSummary} are connected on this invite.`
               : "You are not meeting a placeholder here. Your friend has to sign in, create a Shadow, and accept this invite first."}
           </p>
