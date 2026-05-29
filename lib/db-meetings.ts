@@ -59,6 +59,10 @@ export async function acceptInviteForUser(inviteCode: string, userId: string) {
     (participant) => participant.proxyId === proxy.id
   );
 
+  if (!alreadyJoined && meeting.participants.length >= 2) {
+    throw new Error("INVITE_FULL");
+  }
+
   if (!alreadyJoined && meeting.participants.length < 2) {
     await db.meetingParticipant.create({
       data: {
@@ -73,7 +77,7 @@ export async function acceptInviteForUser(inviteCode: string, userId: string) {
     where: { meetingId: meeting.id }
   });
 
-  return { meetingId: meeting.id, participantCount };
+  return { meetingId: meeting.id, participantCount, alreadyJoined };
 }
 
 export async function ensureInviteForUser(inviteCode: string, userId: string) {

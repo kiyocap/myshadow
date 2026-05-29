@@ -14,9 +14,7 @@ export const dynamic = "force-dynamic";
 
 export default async function MeetingsPage() {
   const session = await getServerSession(authOptions);
-  const inviteCode = session?.user?.id
-    ? inviteCodeForUser(session.user.id)
-    : "PX-SIGNIN";
+  const inviteCode = inviteCodeForUser(session?.user?.id ?? "missing-user");
   const invitePath = `/invite/${inviteCode}` as Route;
   const inviteState = session?.user?.id
     ? await ensureInviteForUser(inviteCode, session.user.id).catch(() => null)

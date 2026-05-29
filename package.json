@@ -9,6 +9,7 @@
     "build:wasm": "prisma generate && NEXT_TEST_WASM=1 NEXT_TEST_WASM_DIR=./node_modules/@next/swc-wasm-nodejs next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "check:real-flow": "node scripts/check-real-flow.mjs",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"

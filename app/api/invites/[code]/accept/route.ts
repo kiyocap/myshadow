@@ -36,6 +36,13 @@ export async function POST(
       );
     }
 
+    if (error instanceof Error && error.message === "INVITE_FULL") {
+      return NextResponse.json(
+        { error: "This invite already has two Shadows connected." },
+        { status: 409 }
+      );
+    }
+
     throw error;
   }
 }
