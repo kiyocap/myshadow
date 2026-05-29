@@ -227,7 +227,7 @@ const textArraySchema = z.preprocess((value) => {
 }, z.array(z.string()));
 
 const aiMeetingResponseSchema = z.object({
-  transcript: z.array(meetingMessageSchema).min(20),
+  transcript: z.array(meetingMessageSchema).min(18),
   report: z.object({
     overallScore: scoreSchema,
     communication: scoreSchema,
@@ -775,7 +775,8 @@ export async function generateAIMeeting({
   const response = await client.chat.completions.create({
     model: openAIModel,
     response_format: { type: "json_object" },
-    temperature: 0.86,
+    max_tokens: 4500,
+    temperature: 0.42,
     messages: [
       {
         role: "system",
@@ -790,8 +791,8 @@ export async function generateAIMeeting({
           "Each representative should speak on behalf of their person, ask clarifying questions, respond directly to what the other said, and surface uncertainty as inference.",
           "The conversation should feel like two unusually perceptive agents trying to understand whether two real people could make each other feel safer, more alive, and more honest.",
           "Do not flatter. Do not diagnose. Do not make claims that require private facts not provided.",
-          "Keep turns substantive: two to four sentences each.",
-          "Use exactly three turns per topic in this order: Identity, Values, Lifestyle, Money, Family, Communication, Conflict, Ambition, Long-Term Goals. For each topic: turn one asks one introspective question, turn two answers that question directly and may ask one reciprocal question, turn three answers the reciprocal question or closes the loop with a specific synthesis and must not end with a question. Then move to the next topic.",
+          "Keep turns substantive but efficient: one to two sentences each.",
+          "Use exactly two turns per topic in this order: Identity, Values, Lifestyle, Money, Family, Communication, Conflict, Ambition, Long-Term Goals. For each topic: turn one asks one introspective question, turn two answers that question directly and closes the loop with a specific synthesis. Then move to the next topic.",
           "Ask rich introspective questions across the transcript. Questions should probe needs, fears, patterns, repair, attention, pace, autonomy, reassurance, ambition, and what each person finds hard to admit.",
           "Return strict JSON only."
         ].join(" ")
@@ -802,15 +803,15 @@ export async function generateAIMeeting({
           task: "Run a deep, conversational AI representative meeting and produce a compatibility report.",
           requiredShape: {
             transcript:
-              "Array of exactly 27 turns: three turns for each of the nine topics in order. Each item: { speakerName, topic, content, turn }. speakerName must be either '<name> AI' for representative A or representative B. Use first names in content instead of he/she/him/her/his/hers pronouns.",
+              "Array of exactly 18 turns: two turns for each of the nine topics in order. Each item: { speakerName, topic, content, turn }. speakerName must be either '<name> AI' for representative A or representative B. Use first names in content instead of he/she/him/her/his/hers pronouns.",
             report:
               "{ overallScore, communication, lifestyle, values, ambition, conflictResolution, greenFlags, potentialFriction, questionsToDiscuss, suggestedFirstDate, suggestedFirstDates, relationshipOutlook, shareCardText }"
           },
           conversationQualityBar: [
             "Make the dialogue responsive: each answer should react to the prior turn.",
             "No ignored questions: before changing topics, answer the previous turn's question in the next turn.",
-            "Use three-turn topic blocks: ask, answer and optionally reciprocate, answer or synthesize without a trailing question.",
-            "The third turn of each topic block must not end with a question.",
+            "Use two-turn topic blocks: ask, then answer or synthesize without a trailing question.",
+            "The second turn of each topic block must not end with a question.",
             "Prefer named, specific claims over generic compatibility language.",
             `Use direct questions like "What does ${proxyA.name} do when..." or "What would ${proxyB.name} need if..."`,
             "Include inner-life questions that the humans would actually want to discuss after reading the transcript.",
@@ -849,21 +850,9 @@ export async function generateAIMeeting({
     throw new Error(`OpenAI returned an invalid meeting shape: ${issueSummary}`);
   }
 
-  const flowRepaired = await repairMeetingConversationFlow(
-    client,
-    parsed.data,
-    proxyA.name,
-    proxyB.name
-  );
-  const nameRepaired = await repairMeetingNameLanguage(
-    client,
-    flowRepaired,
-    proxyA.name,
-    proxyB.name
-  );
-  const pronounSafe = hasGenderedPronouns(nameRepaired)
-    ? enforceNameLanguageInMeetingData(nameRepaired, proxyA.name, proxyB.name)
-    : nameRepaired;
+  const pronounSafe = hasGenderedPronouns(parsed.data)
+    ? enforceNameLanguageInMeetingData(parsed.data, proxyA.name, proxyB.name)
+    : parsed.data;
   const normalized = normalizeAIMeetingResponse(pronounSafe);
 
   return {
