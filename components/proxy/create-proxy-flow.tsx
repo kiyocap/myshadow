@@ -169,6 +169,7 @@ export function CreateProxyFlow() {
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string[]>>({});
   const [llmImport, setLlmImport] = useState("");
   const [copied, setCopied] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [profile, setProfile] = useState<GeneratedProxyProfile>(() =>
     demoProxyProfile(name || "Your")
   );
@@ -193,6 +194,7 @@ export function CreateProxyFlow() {
   }, [name, profileStatus]);
 
   function toggleAnswer(questionId: string, option: string) {
+    setFormError(null);
     setProfileStatus("idle");
     setSelectedAnswers((current) => {
       const active = current[questionId] ?? [];
@@ -222,6 +224,84 @@ export function CreateProxyFlow() {
     const value = selected.join(", ");
 
     return value.length >= 20 ? value : fallback;
+  }
+
+  function getIdentityError() {
+    const parsedAge = Number(age);
+
+    if (!name.trim()) {
+      return "Add your name before continuing.";
+    }
+
+    if (!age.trim() || Number.isNaN(parsedAge) || parsedAge < 1) {
+      return "Add a valid age before continuing.";
+    }
+
+    if (!occupation.trim()) {
+      return "Add your occupation before continuing.";
+    }
+
+    if (!location.trim()) {
+      return "Add your location before continuing.";
+    }
+
+    if (!starSign) {
+      return "Choose a star sign before continuing.";
+    }
+
+    if (!myersBriggs) {
+      return "Choose a Myers-Briggs option, or choose I don't know.";
+    }
+
+    return null;
+  }
+
+  function getGuidedAnswersError() {
+    const unansweredQuestion = guidedQuestions.find(
+      (question) => (selectedAnswers[question.id] ?? []).length === 0
+    );
+
+    if (unansweredQuestion) {
+      return `Choose at least one answer for "${unansweredQuestion.label}" before continuing.`;
+    }
+
+    return null;
+  }
+
+  function getLLMImportError() {
+    if (!llmImport.trim()) {
+      return "Paste your LLM import before continuing.";
+    }
+
+    return null;
+  }
+
+  function getStepError(stepToValidate: number) {
+    if (stepToValidate === 0) {
+      return getIdentityError();
+    }
+
+    if (stepToValidate === 1) {
+      return getGuidedAnswersError();
+    }
+
+    if (stepToValidate === 2) {
+      return getLLMImportError();
+    }
+
+    return null;
+  }
+
+  function getNavigationBlocker(nextStep: number) {
+    for (let index = 0; index < nextStep; index += 1) {
+      const message = getStepError(index);
+
+      if (message) {
+        return { step: index, message };
+      }
+    }
+
+    return null;
   }
 
   async function generateProfile() {
@@ -292,6 +372,17 @@ export function CreateProxyFlow() {
   }
 
   async function goToStep(nextStep: number) {
+    if (nextStep > step) {
+      const blocker = getNavigationBlocker(nextStep);
+
+      if (blocker) {
+        setStep(blocker.step);
+        setFormError(blocker.message);
+        return;
+      }
+    }
+
+    setFormError(null);
     setStep(nextStep);
 
     if (nextStep === 3 && profileStatus !== "ready" && profileStatus !== "demo") {
@@ -363,6 +454,12 @@ export function CreateProxyFlow() {
       </aside>
 
       <section className="border border-border bg-white p-6">
+        {formError && (
+          <div className="mb-6 border border-blue-200 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-900">
+            {formError}
+          </div>
+        )}
+
         {step === 0 && (
           <div>
             <h2 className="text-2xl font-semibold">Identity</h2>
@@ -371,8 +468,10 @@ export function CreateProxyFlow() {
                 <Label htmlFor="name">Name</Label>
                 <Input
                   id="name"
+                  required
                   value={name}
                   onChange={(event) => {
+                    setFormError(null);
                     setName(event.target.value);
                     setProfileStatus("idle");
                   }}
@@ -383,8 +482,10 @@ export function CreateProxyFlow() {
                 <Input
                   id="age"
                   type="number"
+                  required
                   value={age}
                   onChange={(event) => {
+                    setFormError(null);
                     setAge(event.target.value);
                     setProfileStatus("idle");
                   }}
@@ -394,8 +495,10 @@ export function CreateProxyFlow() {
                 <Label htmlFor="occupation">Occupation</Label>
                 <Input
                   id="occupation"
+                  required
                   value={occupation}
                   onChange={(event) => {
+                    setFormError(null);
                     setOccupation(event.target.value);
                     setProfileStatus("idle");
                   }}
@@ -405,8 +508,10 @@ export function CreateProxyFlow() {
                 <Label htmlFor="location">Location</Label>
                 <Input
                   id="location"
+                  required
                   value={location}
                   onChange={(event) => {
+                    setFormError(null);
                     setLocation(event.target.value);
                     setProfileStatus("idle");
                   }}
@@ -417,8 +522,10 @@ export function CreateProxyFlow() {
                 <select
                   id="star-sign"
                   className={selectClassName}
+                  required
                   value={starSign}
                   onChange={(event) => {
+                    setFormError(null);
                     setStarSign(event.target.value);
                     setProfileStatus("idle");
                   }}
@@ -436,8 +543,10 @@ export function CreateProxyFlow() {
                 <select
                   id="myers-briggs"
                   className={selectClassName}
+                  required
                   value={myersBriggs}
                   onChange={(event) => {
+                    setFormError(null);
                     setMyersBriggs(event.target.value);
                     setProfileStatus("idle");
                   }}
@@ -538,8 +647,10 @@ export function CreateProxyFlow() {
                   id="llm-import"
                   className="min-h-[560px]"
                   placeholder="Paste the profile your AI generated here. Shadow will use this as extra personality signal for your representative."
+                  required
                   value={llmImport}
                   onChange={(event) => {
+                    setFormError(null);
                     setLlmImport(event.target.value);
                     setProfileStatus("idle");
                   }}
@@ -603,7 +714,10 @@ export function CreateProxyFlow() {
         <div className="mt-10 flex justify-between border-t border-border pt-6">
           <Button
             variant="secondary"
-            onClick={() => setStep((current) => Math.max(current - 1, 0))}
+            onClick={() => {
+              setFormError(null);
+              setStep((current) => Math.max(current - 1, 0));
+            }}
             disabled={step === 0}
             type="button"
           >
@@ -612,6 +726,14 @@ export function CreateProxyFlow() {
           <Button
             onClick={async () => {
               if (step === 3) {
+                const blocker = getNavigationBlocker(3);
+
+                if (blocker) {
+                  setStep(blocker.step);
+                  setFormError(blocker.message);
+                  return;
+                }
+
                 saveProxyLocally();
                 router.push("/dashboard/my-shadow");
                 return;
