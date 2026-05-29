@@ -549,13 +549,41 @@ export function ProxyLanding() {
                         what deserves your real attention.
                       </p>
                     </div>
-                    <div className="mx-auto h-64 w-36 rounded-[28px] border-4 border-black bg-white p-3 shadow-quiet-xl">
-                      <div className="mx-auto h-2 w-12 rounded-full bg-black" />
-                      <div className="mt-8 text-xs text-muted-foreground">
-                        Your AI meeting is ready
+                    <motion.div
+                      className="border border-black bg-black p-5 text-white shadow-quiet-xl"
+                      whileHover={{ y: -5 }}
+                    >
+                      <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                        <LogoMark />
+                        <span className="text-xs text-white/45">Private invite</span>
                       </div>
-                      <div className="mt-4 h-24 rounded-md bg-black" />
-                    </div>
+                      <p className="mt-7 max-w-xs text-2xl font-semibold leading-tight">
+                        Hewie invited you to let your AIs meet first.
+                      </p>
+                      <div className="mt-8 grid gap-3">
+                        <div className="border border-white/10 bg-white/[0.06] p-4">
+                          <p className="text-xs text-white/45">Meeting status</p>
+                          <div className="mt-3 flex items-center justify-between gap-4">
+                            <span className="text-sm font-medium">Ready when you are</span>
+                            <span className="h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_18px_rgba(37,99,235,0.9)]" />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="border border-white/10 p-3">
+                            <p className="text-xs text-white/45">Time</p>
+                            <p className="mt-2 text-sm font-medium">8 min</p>
+                          </div>
+                          <div className="border border-white/10 p-3">
+                            <p className="text-xs text-white/45">Privacy</p>
+                            <p className="mt-2 text-sm font-medium">Consent only</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-7 flex items-center justify-between">
+                        <span className="font-mono text-sm text-white/55">shadow.to/hewie</span>
+                        <ArrowRight className="h-4 w-4 text-blue-300" />
+                      </div>
+                    </motion.div>
                   </div>
                 )}
               </motion.article>
