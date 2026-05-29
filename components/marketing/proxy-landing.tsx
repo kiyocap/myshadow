@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import {
   motion,
@@ -17,7 +16,6 @@ import {
   LockKeyhole,
   MessageCircle,
   Share2,
-  Sparkles,
   Users
 } from "lucide-react";
 
@@ -189,6 +187,75 @@ function ProxyOrb({
         <p className="text-xs text-white/55">Digital Representative</p>
       </div>
     </div>
+  );
+}
+
+function DatingInefficiencyIllustration() {
+  return (
+    <motion.div
+      className="relative min-h-72 overflow-hidden border border-border bg-white shadow-quiet-xl"
+      whileHover={{ y: -4 }}
+    >
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(37,99,235,0.04),transparent_45%,rgba(37,99,235,0.04))]" />
+      <div className="absolute inset-x-10 top-1/2 h-px bg-border" />
+      <motion.div
+        className="absolute left-[18%] top-1/2 h-px w-[64%] origin-left bg-blue-600"
+        animate={{ scaleX: [0.08, 0.58, 0.08], opacity: [0.25, 0.9, 0.25] }}
+        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      <div className="relative z-10 flex min-h-72 items-center justify-between px-8 sm:px-16">
+        {[
+          { caption: "You", type: "person" },
+          { caption: "Shadow", type: "signal" },
+          { caption: "Them", type: "person" }
+        ].map((item, index) => (
+          <motion.div
+            key={item.caption}
+            className="flex flex-col items-center gap-4"
+            animate={index === 1 ? { y: [0, -5, 0] } : undefined}
+            transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <div
+              className={
+                index === 1
+                  ? "relative flex h-20 w-20 items-center justify-center rounded-full border border-blue-200 bg-blue-50"
+                  : "relative flex h-24 w-24 items-center justify-center rounded-full border border-border bg-white"
+              }
+            >
+              <span
+                className={
+                  index === 1
+                    ? "absolute inset-3 rounded-full border border-blue-200"
+                    : "absolute inset-3 rounded-full border border-muted"
+                }
+              />
+              {item.type === "signal" ? (
+                <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">
+                  ?
+                </span>
+              ) : (
+                <span className="relative flex h-11 w-11 flex-col items-center justify-end rounded-full bg-black pb-2">
+                  <span className="mb-1 h-3 w-3 rounded-full bg-white" />
+                  <span className="h-3 w-6 rounded-t-full bg-white" />
+                </span>
+              )}
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-medium text-muted-foreground">{item.caption}</p>
+              <div className="mt-2 flex justify-center gap-1">
+                {Array.from({ length: index === 1 ? 3 : 2 }).map((_, dot) => (
+                  <span
+                    key={dot}
+                    className={index === 1 ? "h-1 w-3 bg-blue-600" : "h-1 w-3 bg-muted"}
+                  />
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
   );
 }
 
@@ -514,22 +581,7 @@ export function ProxyLanding() {
                 </div>
 
                 {index === 0 && (
-                  <div className="relative min-h-72 overflow-hidden">
-                    <Image
-                      src="/images/shadow-facing-people.png"
-                      alt="Two people facing each other before meeting"
-                      fill
-                      className="object-cover object-center"
-                      sizes="(min-width: 768px) 760px, 100vw"
-                      priority
-                    />
-                    <span className="absolute right-10 top-8 flex h-8 w-8 items-center justify-center rounded-md border border-border bg-white text-muted-foreground">
-                      <MessageCircle className="h-4 w-4" />
-                    </span>
-                    <span className="absolute right-2 top-20 flex h-8 w-8 items-center justify-center rounded-md border border-border bg-white text-muted-foreground">
-                      <Sparkles className="h-4 w-4" />
-                    </span>
-                  </div>
+                  <DatingInefficiencyIllustration />
                 )}
 
                 {index === 1 && (
