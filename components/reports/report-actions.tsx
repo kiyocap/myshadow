@@ -141,61 +141,131 @@ export function DownloadPdfButton({ className }: { className?: string }) {
 }
 
 export function ShareControls({ report }: { report: CompatibilityReportData }) {
-  const [copied, setCopied] = useState<"text" | "link" | null>(null);
+  const [copied, setCopied] = useState<"text" | "link" | "download" | null>(null);
   const [selectedColor, setSelectedColor] = useState<ShareColor>(shareColors[0]);
   const shareText = useMemo(() => report.shareCardText, [report.shareCardText]);
+  const shareCardDescription =
+    shareText.replace(/^Your AIs are \d+% compatible\.\s*/i, "").trim() ||
+    "Strong potential for a meaningful connection.";
 
   async function copy(value: "text" | "link") {
-    await navigator.clipboard.writeText(
-      value === "text" ? shareText : window.location.href
-    );
+    const text = value === "text" ? shareText : window.location.href;
+
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      textarea.remove();
+    }
+
     setCopied(value);
     window.setTimeout(() => setCopied(null), 1800);
   }
 
-  function downloadImage() {
+  async function downloadImage() {
     const svg = makeShareCardSvg(report, selectedColor);
-    const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `shadow-${report.overallScore}-compatible.svg`;
-    document.body.append(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    const svgUrl = URL.createObjectURL(
+      new Blob([svg], { type: "image/svg+xml;charset=utf-8" })
+    );
+
+    try {
+      const image = new Image();
+      image.decoding = "async";
+      image.src = svgUrl;
+      await image.decode();
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 1200;
+      canvas.height = 1500;
+      const context = canvas.getContext("2d");
+
+      if (!context) {
+        throw new Error("Canvas unavailable");
+      }
+
+      context.drawImage(image, 0, 0);
+      const pngUrl = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = pngUrl;
+      link.download = `shadow-${report.overallScore}-compatible.png`;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setCopied("download");
+      window.setTimeout(() => setCopied(null), 1800);
+    } finally {
+      URL.revokeObjectURL(svgUrl);
+    }
   }
 
   return (
-    <div className="max-w-sm space-y-4">
-      <p className="text-sm font-medium">Customize</p>
-      <div className="flex gap-2" aria-label="Share card color options">
-        {shareColors.map((color) => (
-          <button
-            key={color.label}
-            aria-label={`${color.label} share card`}
-            className={
-              selectedColor.label === color.label
-                ? "h-6 w-6 rounded-full border border-black ring-2 ring-blue-600 ring-offset-2"
-                : "h-6 w-6 rounded-full border border-border"
-            }
-            onClick={() => setSelectedColor(color)}
-            style={{ backgroundColor: color.background }}
-            type="button"
-          />
-        ))}
+    <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+      <div
+        className="rounded-lg border p-6"
+        style={{
+          backgroundColor: selectedColor.background,
+          borderColor:
+            selectedColor.background === "#ffffff" ? "#e5e7eb" : selectedColor.background,
+          color: selectedColor.background === "#ffffff" ? "#050505" : "#ffffff"
+        }}
+      >
+        <p className="text-sm opacity-65">Our AIs are</p>
+        <p className="mt-4 text-6xl font-semibold">{report.overallScore}%</p>
+        <p className="text-3xl font-semibold">compatible.</p>
+        <p className="mt-8 max-w-xs text-sm leading-6 opacity-65">
+          {shareCardDescription}
+        </p>
+        <div className="mt-10 flex items-center gap-3">
+          <span className="relative flex h-6 w-6 items-center justify-center rounded-full border border-current/30">
+            <span className="h-2.5 w-2.5 rounded-full border border-current" />
+            <span className="absolute -right-0.5 bottom-1 h-1.5 w-1.5 rounded-full bg-current" />
+          </span>
+          <span className="text-sm font-semibold">Shadow</span>
+        </div>
       </div>
-      <Button className="w-full" onClick={downloadImage} type="button">
-        Download Image
-      </Button>
-      <Button variant="secondary" className="w-full" onClick={() => copy("link")} type="button">
-        {copied === "link" ? <Check className="h-4 w-4" /> : null}
-        {copied === "link" ? "Copied Link" : "Copy Link"}
-      </Button>
-      <Button variant="secondary" className="w-full" onClick={() => copy("text")} type="button">
-        {copied === "text" ? <Check className="h-4 w-4" /> : null}
-        {copied === "text" ? "Copied Text" : "Copy Share Text"}
-      </Button>
+
+      <div className="max-w-sm space-y-4">
+        <p className="text-sm font-medium">Customize</p>
+        <div className="flex gap-2" aria-label="Share card color options">
+          {shareColors.map((color) => (
+            <button
+              key={color.label}
+              aria-label={`${color.label} share card`}
+              className={
+                selectedColor.label === color.label
+                  ? "h-6 w-6 rounded-full border border-black ring-2 ring-blue-600 ring-offset-2"
+                  : "h-6 w-6 rounded-full border border-border"
+              }
+              onClick={() => setSelectedColor(color)}
+              style={{ backgroundColor: color.background }}
+              type="button"
+            />
+          ))}
+        </div>
+        <Button className="w-full" onClick={downloadImage} type="button">
+          {copied === "download" ? <Check className="h-4 w-4" /> : null}
+          {copied === "download" ? "Image Downloaded" : "Download PNG"}
+        </Button>
+        <Button variant="secondary" className="w-full" onClick={() => copy("link")} type="button">
+          {copied === "link" ? <Check className="h-4 w-4" /> : null}
+          {copied === "link" ? "Copied Link" : "Copy Link"}
+        </Button>
+        <Button variant="secondary" className="w-full" onClick={() => copy("text")} type="button">
+          {copied === "text" ? <Check className="h-4 w-4" /> : null}
+          {copied === "text" ? "Copied Text" : "Copy Share Text"}
+        </Button>
+        <p className="text-xs leading-5 text-muted-foreground">
+          PNG is sized for sharing. Copy Link shares this report page; Copy Share
+          Text copies the compatibility line.
+        </p>
+      </div>
     </div>
   );
 }

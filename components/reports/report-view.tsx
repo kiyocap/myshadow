@@ -116,27 +116,6 @@ function ReportList({ title, items }: { title: string; items: string[] }) {
   );
 }
 
-function ShareCard({ report }: { report: CompatibilityReportData }) {
-  return (
-    <div className="rounded-lg border border-black bg-black p-6 text-white">
-      <p className="text-sm text-white/65">Our AIs are</p>
-      <p className="mt-4 text-6xl font-semibold">{report.overallScore}%</p>
-      <p className="text-3xl font-semibold">compatible.</p>
-      <p className="mt-8 max-w-xs text-sm leading-6 text-white/65">
-        {report.shareCardText.replace(/^Your AIs are \d+% compatible\.\s*/i, "") ||
-          "Strong potential for a meaningful connection."}
-      </p>
-      <div className="mt-10 flex items-center gap-3">
-        <span className="relative flex h-6 w-6 items-center justify-center rounded-full border border-white/30">
-          <span className="h-2.5 w-2.5 rounded-full border border-white" />
-          <span className="absolute -right-0.5 bottom-1 h-1.5 w-1.5 rounded-full bg-white" />
-        </span>
-        <span className="text-sm font-semibold">Shadow</span>
-      </div>
-    </div>
-  );
-}
-
 function FirstDateOptions({
   options
 }: {
@@ -279,8 +258,7 @@ export function ReportView({
         <section className="mt-6 rounded-lg border border-border bg-white p-6 print:hidden">
           <h2 className="text-lg font-semibold">Share Your Results</h2>
           <p className="mt-1 text-sm text-muted-foreground">Create a share card</p>
-          <div className="mt-6 grid gap-6 lg:grid-cols-[360px_1fr]">
-            <ShareCard report={report} />
+          <div className="mt-6">
             <ShareControls report={report} />
           </div>
         </section>
