@@ -1,5 +1,6 @@
 "use client";
 
+import type React from "react";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { Mail } from "lucide-react";
@@ -12,10 +13,11 @@ export function SignInPanel({ callbackUrl = "/dashboard" }: { callbackUrl?: stri
   const [email, setEmail] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [sending, setSending] = useState(false);
   const [continuing, setContinuing] = useState(false);
+  const [sendingMagicLink, setSendingMagicLink] = useState(false);
 
-  async function continueWithEmail() {
+  async function continueWithEmail(event?: React.FormEvent<HTMLFormElement>) {
+    event?.preventDefault();
     setContinuing(true);
     setNotice(null);
     setError(null);
@@ -46,40 +48,16 @@ export function SignInPanel({ callbackUrl = "/dashboard" }: { callbackUrl?: stri
       <div>
         <h2 className="text-xl font-semibold">Continue to Shadow</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Enter your email and we&apos;ll send a secure sign-in link.
+          Enter your email to create a private session. Magic links are available
+          once email delivery is confirmed.
         </p>
       </div>
       <form
         className="mt-8 space-y-4"
-        onSubmit={async (event) => {
-          event.preventDefault();
-
-          setSending(true);
-          setNotice(null);
-          setError(null);
-
-          const result = await signIn("email", {
-            email,
-            callbackUrl,
-            redirect: false
-          });
-
-          setSending(false);
-
-          if (result?.error) {
-            setError(
-              "The magic link could not be sent. Check the email address, then try again."
-            );
-            return;
-          }
-
-          setNotice(
-            `Magic link sent to ${email}. Check inbox and spam. The link can take a minute to arrive.`
-          );
-        }}
+        onSubmit={continueWithEmail}
       >
         <div className="space-y-2">
-          <Label htmlFor="email">Magic link</Label>
+          <Label htmlFor="email">Email</Label>
           <Input
             id="email"
             type="email"
@@ -89,18 +67,41 @@ export function SignInPanel({ callbackUrl = "/dashboard" }: { callbackUrl?: stri
             required
           />
         </div>
-        <Button type="submit" className="w-full" disabled={sending}>
+        <Button type="submit" className="w-full" disabled={continuing || !email}>
           <Mail className="h-4 w-4" />
-          {sending ? "Sending..." : "Send magic link"}
+          {continuing ? "Continuing..." : "Continue with email"}
         </Button>
         <Button
           type="button"
           variant="secondary"
           className="w-full"
-          disabled={sending || continuing || !email}
-          onClick={continueWithEmail}
+          disabled={sendingMagicLink || continuing || !email}
+          onClick={async () => {
+            setSendingMagicLink(true);
+            setNotice(null);
+            setError(null);
+
+            const result = await signIn("email", {
+              email,
+              callbackUrl,
+              redirect: false
+            });
+
+            setSendingMagicLink(false);
+
+            if (result?.error) {
+              setError(
+                "Magic link delivery is not available yet. Use Continue with email for now."
+              );
+              return;
+            }
+
+            setNotice(
+              `Magic link sent to ${email}. Check inbox and spam. The link can take a minute to arrive.`
+            );
+          }}
         >
-          {continuing ? "Continuing..." : "Continue with email"}
+          {sendingMagicLink ? "Sending..." : "Send magic link"}
         </Button>
       </form>
       {notice && (
