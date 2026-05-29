@@ -250,7 +250,7 @@ function MeetingPreview() {
   const moment = meetingMoments[activeMoment];
 
   return (
-    <div className="relative mx-auto max-w-3xl border border-border bg-black p-6 text-white shadow-quiet-xl sm:p-8">
+    <div className="relative mx-auto w-full max-w-3xl border border-border bg-black p-6 text-white shadow-quiet-xl sm:p-8">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.16em] text-white/40">
@@ -519,19 +519,7 @@ export function ProxyLanding() {
                 )}
 
                 {index === 1 && (
-                  <div id="features" className="grid gap-6 lg:grid-cols-[1fr_1.45fr]">
-                    <div className="flex flex-wrap content-start gap-2">
-                      {[
-                        "Values",
-                        "Goals",
-                        "Personality",
-                        "Communication",
-                        "Interests",
-                        "Preferences"
-                      ].map((item) => (
-                        <Badge key={item}>{item}</Badge>
-                      ))}
-                    </div>
+                  <div id="features" className="mx-auto w-full max-w-3xl">
                     <ProfilePreview />
                   </div>
                 )}
