@@ -76,7 +76,14 @@ export function MeetingRoom({ meetingId }: { meetingId: string }) {
         });
 
         if (!response.ok) {
-          throw new Error("Meeting generation failed.");
+          const data = (await response.json().catch(() => null)) as {
+            error?: string;
+          } | null;
+
+          throw new Error(
+            data?.error ??
+              "This meeting could not start. Make sure the invite has two accepted Shadows."
+          );
         }
 
         const data = (await response.json()) as AIMeetingResult & {
@@ -87,9 +94,7 @@ export function MeetingRoom({ meetingId }: { meetingId: string }) {
         setVisibleCount(1);
 
         if (data.warning) {
-          setError(
-            "Live generation was unavailable, so Shadow is showing a preview transcript. Try regenerating in a moment."
-          );
+          setError(data.warning);
         }
       } catch (fetchError) {
         if (controller.signal.aborted) return;
