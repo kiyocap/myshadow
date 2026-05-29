@@ -83,29 +83,6 @@ function LogoMark({ dark = false }: { dark?: boolean }) {
   );
 }
 
-function HeroConstellation() {
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      <div className="absolute left-[7%] top-[33%] h-64 w-64 rounded-full border border-white/10" />
-      <div className="absolute left-[10%] top-[29%] h-80 w-[520px] -rotate-12 rounded-[50%] border border-white/10" />
-      <div className="absolute right-[8%] top-[18%] h-80 w-[520px] rotate-12 rounded-[50%] border border-white/10" />
-      <div className="absolute bottom-[17%] right-[9%] h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_16px_rgba(255,255,255,0.8)]" />
-      <div className="absolute bottom-[22%] left-[16%] h-1.5 w-1.5 rounded-full bg-blue-600 shadow-[0_0_18px_rgba(37,99,235,0.9)]" />
-      <div className="absolute right-[16%] top-[31%] h-1.5 w-1.5 rounded-full bg-blue-300 shadow-[0_0_16px_rgba(147,197,253,0.9)]" />
-      <motion.div
-        className="absolute right-[11%] top-[45%] h-1 w-1 rounded-full bg-white"
-        animate={{ opacity: [0.15, 1, 0.15] }}
-        transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="absolute left-[13%] top-[56%] h-1 w-1 rounded-full bg-white"
-        animate={{ opacity: [1, 0.15, 1] }}
-        transition={{ duration: 3.1, repeat: Infinity, ease: "easeInOut" }}
-      />
-    </div>
-  );
-}
-
 function HeroVideoBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden bg-black" aria-hidden="true">
@@ -324,7 +301,6 @@ export function ProxyLanding() {
 
       <section className="relative isolate min-h-[690px] overflow-hidden bg-black px-5 py-28 text-white sm:px-8 lg:py-32">
         <HeroVideoBackground />
-        <HeroConstellation />
         <div className="relative mx-auto flex max-w-7xl flex-col items-center justify-center text-center">
           <Badge className="w-fit border-white/10 bg-white/10 text-white/80">
             <span className="mr-2 h-1.5 w-1.5 rounded-full bg-blue-500" />
