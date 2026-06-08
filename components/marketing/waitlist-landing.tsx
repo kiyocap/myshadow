@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowDown, ArrowUpRight, Check, Loader2, Moon, X } from "lucide-react";
 
@@ -770,18 +771,28 @@ export function WaitlistLanding() {
 
       {/* Footer */}
       <footer className="border-t border-border px-5 pb-12 pt-16 sm:px-8">
-        <div className="mx-auto flex max-w-[1180px] flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
-            <LogoMark />
-            <span className="hidden text-sm text-muted-foreground sm:inline">
-              It does the dating. You do the deciding.
-            </span>
-          </div>
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <a href="#join" className="link-underline">
+        <div className="mx-auto max-w-[1180px]">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <LogoMark />
+              <span className="hidden text-sm text-muted-foreground sm:inline">
+                It does the dating. You do the deciding.
+              </span>
+            </div>
+            <a href="#join" className="link-underline text-sm text-muted-foreground">
               Request access <ArrowUpRight className="h-4 w-4" />
             </a>
-            <span>© {new Date().getFullYear()} Shadow</span>
+          </div>
+          <div className="mt-10 flex flex-col gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <span>© {new Date().getFullYear()} Shadow. All rights reserved.</span>
+            <div className="flex items-center gap-6">
+              <Link href="/terms" className="transition hover:text-foreground">
+                Terms of Use
+              </Link>
+              <Link href="/privacy" className="transition hover:text-foreground">
+                Privacy Policy
+              </Link>
+            </div>
           </div>
         </div>
       </footer>
