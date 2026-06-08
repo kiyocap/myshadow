@@ -1,6 +1,6 @@
 # Shadow web deploy (Vercel)
 
-Production URL: `https://tryshadowv1.vercel.app`
+Production URL: `https://shadowdating.vercel.app`
 
 ## One-click deploy
 
@@ -8,15 +8,15 @@ Production URL: `https://tryshadowv1.vercel.app`
 2. Import the project in Vercel if not already linked (project name: `shadowdating`).
 3. Set the environment variables below in **Project Settings > Environment Variables** for Production (and Preview if you test there).
 4. Deploy. After deploy, confirm:
-   - `https://tryshadowv1.vercel.app/api/health` returns `{"ok":true,...}`
-   - `https://tryshadowv1.vercel.app/terms` and `/privacy` load without placeholders in the page title/branding.
+   - `https://shadowdating.vercel.app/api/health` returns `{"ok":true,...}`
+   - `https://shadowdating.vercel.app/terms` and `/privacy` load without placeholders in the page title/branding.
 
 ## Required environment variables
 
 | Variable | Required | Notes |
 |----------|----------|-------|
 | `DATABASE_URL` | Yes | PostgreSQL connection string (Prisma). |
-| `NEXTAUTH_URL` | Yes | Production app URL, e.g. `https://tryshadowv1.vercel.app`. |
+| `NEXTAUTH_URL` | Yes | Production app URL, e.g. `https://shadowdating.vercel.app`. |
 | `NEXTAUTH_SECRET` | Yes | `openssl rand -base64 32` |
 | `NEXT_PUBLIC_APP_URL` | Yes | Same as `NEXTAUTH_URL`. |
 | `OPENAI_API_KEY` | Recommended | Without it: profile generation and field meetings use demo fallbacks; voice transcribe returns 501. |
@@ -57,3 +57,31 @@ If the Vercel CLI is installed and authenticated:
 ```bash
 npx vercel --prod
 ```
+
+## Production domain (`shadowdating.vercel.app`)
+
+The Vercel project name is `shadowdating`; the default production hostname is `https://shadowdating.vercel.app`. After a CLI deploy, point that hostname at the same deployment as your latest production build (not an older static deployment):
+
+```bash
+cd /path/to/myshadow
+npx vercel --prod                    # note the deployment URL, e.g. shadowdating-xxxxx.vercel.app
+npx vercel alias set <deployment-url> shadowdating.vercel.app
+# optional: keep tryshadowv1 as a secondary alias on the same deployment
+npx vercel alias set <deployment-url> tryshadowv1.vercel.app
+```
+
+Update **Production** env vars when switching canonical URL:
+
+- `NEXTAUTH_URL` = `https://shadowdating.vercel.app`
+- `NEXT_PUBLIC_APP_URL` = `https://shadowdating.vercel.app`
+
+Then redeploy (or `npx vercel --prod`) so NextAuth and metadata use the new base URL.
+
+Verify after aliasing:
+
+- `https://shadowdating.vercel.app/`
+- `https://shadowdating.vercel.app/terms`
+- `https://shadowdating.vercel.app/privacy`
+- `https://shadowdating.vercel.app/api/health`
+
+`tryshadowv1.vercel.app` can remain as an extra alias on the same deployment for bookmarks; it does not need to redirect unless you want a single canonical hostname for SEO.
