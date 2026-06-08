@@ -21,7 +21,8 @@ export const proxyInputSchema = z.object({
           "CHATGPT_EXPORT",
           "WHATSAPP_EXPORT",
           "JOURNAL_ENTRY",
-          "SOCIAL_PROFILE"
+          "SOCIAL_PROFILE",
+          "VOICE_NOTE"
         ]),
         text: z.string()
       })
@@ -500,6 +501,19 @@ function rewriteTwoPersonPronouns(
   });
 }
 
+// Defensive guarantee: strip any em/en dashes the model emits despite the
+// prompt rule, replacing them with natural punctuation (comma clause break, or
+// a hyphen for a tight range) so no typographic dash ever reaches the client.
+export function stripTypographicDashes(text: string): string {
+  return text
+    .replace(/\s*\u2014\s*/g, ", ")
+    .replace(/\s+\u2013\s+/g, ", ")
+    .replace(/\u2013/g, "-")
+    .replace(/\s+,/g, ",")
+    .replace(/ {2,}/g, " ")
+    .replace(/,\s*$/g, ".");
+}
+
 function enforceNameLanguageInMeetingData(
   data: z.infer<typeof aiMeetingResponseSchema>,
   proxyAName: string,
@@ -507,16 +521,18 @@ function enforceNameLanguageInMeetingData(
 ): z.infer<typeof aiMeetingResponseSchema> {
   const names = [proxyAName, proxyBName];
   const rewriteReportText = (text: string) =>
-    rewriteTwoPersonPronouns(text, proxyAName, names);
+    stripTypographicDashes(rewriteTwoPersonPronouns(text, proxyAName, names));
   const rewriteReportList = (items: string[]) => items.map(rewriteReportText);
 
   return {
     transcript: data.transcript.map((message) => ({
       ...message,
-      content: rewriteTwoPersonPronouns(
-        message.content,
-        message.speakerName.startsWith(proxyBName) ? proxyBName : proxyAName,
-        names
+      content: stripTypographicDashes(
+        rewriteTwoPersonPronouns(
+          message.content,
+          message.speakerName.startsWith(proxyBName) ? proxyBName : proxyAName,
+          names
+        )
       )
     })),
     report: {
@@ -567,6 +583,7 @@ async function repairMeetingNameLanguage(
           "Rewrite the provided meeting JSON so it contains zero standalone gendered third-person pronouns: he, she, him, her, his, hers.",
           "Replace every such pronoun with the correct first name or possessive first name.",
           "Preserve the JSON shape, numbers, topics, speakers, meaning, and level of detail.",
+          "PUNCTUATION RULE (strict): never use em dashes or en dashes in any string; use commas, periods, or regular hyphens instead.",
           "Return strict JSON only."
         ].join(" ")
       },
@@ -617,6 +634,7 @@ async function repairMeetingConversationFlow(
           "It is acceptable to lightly rewrite turns and adjust topic labels, but preserve speaker alternation, report shape, useful specificity, and emotional depth.",
           "Keep the transcript conversational rather than checklist-like.",
           "Use first names instead of gendered third-person pronouns. The output must contain zero standalone words: he, she, him, her, his, hers.",
+          "PUNCTUATION RULE (strict): never use em dashes or en dashes in any string; use commas, periods, or regular hyphens instead.",
           "Return strict JSON only."
         ].join(" ")
       },
@@ -716,6 +734,35 @@ export async function generateProxyProfile(
     return demoProxyProfile(input.name);
   }
 
+  const voiceNote = (input.imports ?? [])
+    .filter((item) => item.type === "VOICE_NOTE")
+    .map((item) => item.text.trim())
+    .filter(Boolean)
+    .join("\n\n");
+
+  const userMessage: Record<string, unknown> = {
+    task: "Generate a Shadow representative profile.",
+    requiredShape: {
+      values: "string[]",
+      traits: "string[]",
+      goals: "string[]",
+      communicationStyle: "string",
+      humourStyle: "string",
+      strengths: "string[]",
+      weaknesses: "string[]",
+      relationshipPreferences: "string[]",
+      summary: "string"
+    },
+    input
+  };
+
+  if (voiceNote) {
+    userMessage.voiceNote = {
+      note: "Transcript of a short voice note the person recorded about themselves and what they are looking for. These are their own spoken words. Weigh it heavily for tone of voice, communication style, humour, what they value, and what they want from a relationship. If it conflicts with the structured answers, treat the voice note as the more authentic signal.",
+      transcript: voiceNote
+    };
+  }
+
   const response = await client.chat.completions.create({
     model: openAIModel,
     response_format: { type: "json_object" },
@@ -723,25 +770,11 @@ export async function generateProxyProfile(
       {
         role: "system",
         content:
-          "You are Shadow's personality engine. Produce precise, respectful, non-manipulative compatibility-relevant insights as strict JSON. Use the person's first name instead of gendered third-person pronouns. The JSON strings must contain zero standalone words: he, she, him, her, his, hers."
+          "You are Shadow's personality engine. Produce precise, respectful, non-manipulative compatibility-relevant insights as strict JSON. Use the person's first name instead of gendered third-person pronouns. The JSON strings must contain zero standalone words: he, she, him, her, his, hers. PUNCTUATION RULE (strict): never use em dashes or en dashes in any string; use commas, periods, or regular hyphens instead."
       },
       {
         role: "user",
-        content: JSON.stringify({
-          task: "Generate a Shadow representative profile.",
-          requiredShape: {
-            values: "string[]",
-            traits: "string[]",
-            goals: "string[]",
-            communicationStyle: "string",
-            humourStyle: "string",
-            strengths: "string[]",
-            weaknesses: "string[]",
-            relationshipPreferences: "string[]",
-            summary: "string"
-          },
-          input
-        })
+        content: JSON.stringify(userMessage)
       }
     ]
   });
@@ -794,6 +827,7 @@ export async function generateAIMeeting({
           "Keep turns substantive but efficient: one to two sentences each.",
           "Use exactly two turns per topic in this order: Identity, Values, Lifestyle, Money, Family, Communication, Conflict, Ambition, Long-Term Goals. For each topic: turn one asks one introspective question, turn two answers that question directly and closes the loop with a specific synthesis. Then move to the next topic.",
           "Ask rich introspective questions across the transcript. Questions should probe needs, fears, patterns, repair, attention, pace, autonomy, reassurance, ambition, and what each person finds hard to admit.",
+          "PUNCTUATION RULE (strict): never use em dashes or en dashes anywhere in the transcript or report. Use commas, periods, or regular hyphens instead. Scan every string before returning.",
           "Return strict JSON only."
         ].join(" ")
       },
