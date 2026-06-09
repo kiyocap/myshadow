@@ -23,7 +23,8 @@ export default function PrivacyPage() {
           you are, introduces it to another, and gives you a compatibility reading before you ever
           meet. This Privacy Policy explains what information Shadow (&ldquo;Shadow,&rdquo;
           &ldquo;we,&rdquo; &ldquo;us&rdquo;) collects, why we collect it, and the choices you have.
-          Shadow is operated by [COMPANY NAME].
+          Shadow is operated by HumanityOne Ltd, a company registered in England and Wales under
+          company number 16736836.
         </>
       }
     >
@@ -234,7 +235,8 @@ export default function PrivacyPage() {
       <LegalSection index="14" heading="Contact us">
         <p>
           If you have questions or requests about your privacy, contact us at [CONTACT EMAIL], or by
-          mail at [COMPANY NAME], [POSTAL ADDRESS].
+          mail at HumanityOne Ltd, 57 0501 Bloom West, 57 Nine Elms Lane, London, SW11 7DS, United
+          Kingdom.
         </p>
       </LegalSection>
     </LegalShell>

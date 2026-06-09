@@ -20,7 +20,8 @@ export default function TermsPage() {
       intro={
         <>
           These Terms of Use (the &ldquo;Terms&rdquo;) are a binding agreement between you and
-          [COMPANY NAME] (&ldquo;Shadow,&rdquo; &ldquo;we,&rdquo; &ldquo;us&rdquo;) and also serve as
+          HumanityOne Ltd, a company registered in England and Wales under company number 16736836
+          (&ldquo;Shadow,&rdquo; &ldquo;we,&rdquo; &ldquo;us&rdquo;) and also serve as
           the End User License Agreement (EULA) for the Shadow application. Please read them
           carefully. By downloading, accessing, or using Shadow, you agree to these Terms. If you do
           not agree, do not use Shadow.
@@ -152,7 +153,7 @@ export default function TermsPage() {
 
       <LegalSection index="10" heading="Limitation of liability">
         <p>
-          To the maximum extent permitted by law, [COMPANY NAME] and its officers, employees, and
+          To the maximum extent permitted by law, HumanityOne Ltd and its officers, employees, and
           agents will not be liable for any indirect, incidental, special, consequential, or punitive
           damages, or any loss of data, profits, or goodwill, arising out of or related to your use
           of Shadow. To the maximum extent permitted by law, our total liability for any claim
@@ -163,7 +164,7 @@ export default function TermsPage() {
 
       <LegalSection index="11" heading="Apple-specific terms">
         <p>
-          These Terms are between you and [COMPANY NAME] only, not with Apple. Apple is not
+          These Terms are between you and HumanityOne Ltd only, not with Apple. Apple is not
           responsible for the app or its content. Apple has no obligation to provide support or
           maintenance for the app. In the event the app fails to conform to any applicable warranty,
           you may notify Apple, and Apple may refund the purchase price; to the maximum extent
@@ -183,8 +184,8 @@ export default function TermsPage() {
 
       <LegalSection index="13" heading="Governing law">
         <p>
-          These Terms are governed by the laws of [JURISDICTION], without regard to its conflict of
-          laws rules. You agree to the exclusive jurisdiction of the courts located in [JURISDICTION]
+          These Terms are governed by the laws of England and Wales, without regard to its conflict of
+          laws rules. You agree to the exclusive jurisdiction of the courts located in England and Wales
           for any dispute that is not subject to arbitration or small-claims resolution, to the
           extent permitted by applicable law.
         </p>
@@ -192,8 +193,8 @@ export default function TermsPage() {
 
       <LegalSection index="14" heading="Contact us">
         <p>
-          Questions about these Terms can be sent to [CONTACT EMAIL], or by mail to [COMPANY NAME],
-          [POSTAL ADDRESS].
+          Questions about these Terms can be sent to [CONTACT EMAIL], or by mail to HumanityOne Ltd,
+          57 0501 Bloom West, 57 Nine Elms Lane, London, SW11 7DS, United Kingdom.
         </p>
       </LegalSection>
     </LegalShell>
