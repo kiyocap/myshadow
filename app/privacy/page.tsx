@@ -184,7 +184,7 @@ export default function PrivacyPage() {
         <p>
           Depending on where you live, you may have additional rights over your personal information,
           such as the right to access, correct, or delete it. To make a request, contact us at
-          [CONTACT EMAIL].
+          hewie@humanityone.world.
         </p>
       </LegalSection>
 
@@ -203,7 +203,7 @@ export default function PrivacyPage() {
           Shadow is intended for adults and is not directed to children. You must be at least 17
           years old to use Shadow. We do not knowingly collect personal information from anyone under
           17. If you believe a minor has provided us with personal information, please contact us at
-          [CONTACT EMAIL] and we will take steps to delete it.
+          hewie@humanityone.world and we will take steps to delete it.
         </p>
       </LegalSection>
 
@@ -234,7 +234,7 @@ export default function PrivacyPage() {
 
       <LegalSection index="14" heading="Contact us">
         <p>
-          If you have questions or requests about your privacy, contact us at [CONTACT EMAIL], or by
+          If you have questions or requests about your privacy, contact us at hewie@humanityone.world, or by
           mail at HumanityOne Ltd, 57 0501 Bloom West, 57 Nine Elms Lane, London, SW11 7DS, United
           Kingdom.
         </p>

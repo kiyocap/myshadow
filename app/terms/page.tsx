@@ -114,8 +114,8 @@ export default function TermsPage() {
         />
         <p>
           <strong className="font-medium text-foreground">Reporting and contact.</strong> If you
-          encounter objectionable content or abusive behavior, please report it to us at [CONTACT
-          EMAIL]. We review reports and aim to act on credible reports within 24 hours, which may
+          encounter objectionable content or abusive behavior, please report it to us at
+          hewie@humanityone.world. We review reports and aim to act on credible reports within 24 hours, which may
           include removing content and ejecting the user responsible from the service. We do not
           tolerate abusive users.
         </p>
@@ -193,7 +193,7 @@ export default function TermsPage() {
 
       <LegalSection index="14" heading="Contact us">
         <p>
-          Questions about these Terms can be sent to [CONTACT EMAIL], or by mail to HumanityOne Ltd,
+          Questions about these Terms can be sent to hewie@humanityone.world, or by mail to HumanityOne Ltd,
           57 0501 Bloom West, 57 Nine Elms Lane, London, SW11 7DS, United Kingdom.
         </p>
       </LegalSection>
