@@ -37,13 +37,12 @@ npm run typecheck
 npm run build
 ```
 
-## Live meetings and the 60s serverless cap
+## Live meetings and latency
 
-Vercel Hobby/Pro default function timeout is **60 seconds**. A live meeting fires many sequential OpenAI calls, so `lib/field/live.ts` caps each conversational stage at **3 turns** (max **10 turns** total) so `/api/field/meet/stream` reliably finishes with a verdict before the wall.
+First meetings run **two quick exchanges** (surface + friction test). Each stage opens with an instant line, then one live model reply (~8–15s server-side total). The extra verdict LLM pass is **off by default**; set `SHADOW_SKIP_LIVE_VERDICT=0` and `OPENAI_VERDICT_MODEL=gpt-4o` on Pro/`maxDuration` > 60s for richer grading.
 
-- Prefer **`POST /api/field/meet/stream`** (SSE) from the iOS app — it streams turns as they arrive.
-- **`POST /api/field/meet`** (one-shot) uses the same engine but often hits the 60s wall because the response is buffered until the end.
-- On plans with **`maxDuration = 300`**, you can raise quality by setting `OPENAI_VERDICT_MODEL=gpt-4o` and optionally increasing turn caps in `live.ts`.
+- Prefer **`POST /api/field/meet/stream`** from iOS — turns arrive as they are generated.
+- **`POST /api/field/meet`** (one-shot) buffers until the end and often hits the 60s wall.
 
 ## Graceful degradation without OpenAI
 

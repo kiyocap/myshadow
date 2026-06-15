@@ -55,15 +55,18 @@ import {
 } from "./types.ts";
 
 /**
- * Per-stage turn cap for the live conversation. Each turn is a sequential LLM
- * call (~3–5s). Vercel's default serverless wall is 60s, so the full meeting
- * (3 conversational stages × this cap + one verdict pass) must stay under ~50s
- * of model time. Was 6 (up to 18 turns); 3 keeps quality while fitting the cap.
+ * Per-stage turn cap. Each live turn is one sequential LLM call (~2–4s).
+ * We emit an instant opener per stage (no LLM), then one LLM reply — so two
+ * conversational stages ≈ 2 model calls (~8–12s total on the server).
  */
-const MAX_LIVE_TURNS_PER_STAGE = 3;
+const MAX_LIVE_TURNS_PER_STAGE = 2;
 
-/** Hard stop for a whole meeting — safety net if stages run long. */
-const MAX_LIVE_TURNS_TOTAL = 10;
+/** Hard stop for a whole meeting. */
+const MAX_LIVE_TURNS_TOTAL = 5;
+
+/** Skip the extra verdict LLM pass; the deterministic engine grades the real transcript. */
+const SKIP_LIVE_VERDICT_LLM =
+  process.env.SHADOW_SKIP_LIVE_VERDICT !== "0";
 
 /** Default live resonance weight when blending with the deterministic read. */
 const LIVE_RESONANCE_WEIGHT = 0.55;
@@ -73,7 +76,7 @@ const LIVE_RESONANCE_WEIGHT = 0.55;
  * "light context only" and handoff is the verdict itself, so both are handled
  * deterministically rather than burning sequential turn calls on them.
  */
-const CONVERSATIONAL_STAGES: MeetingStage[] = ["surface", "values_rhythm", "friction_test"];
+const CONVERSATIONAL_STAGES: MeetingStage[] = ["surface", "friction_test"];
 
 export type LiveMeetingSource = "openai";
 
@@ -141,7 +144,8 @@ function defaultStages(
 ): MeetingStage[] {
   if (!preScreen.shouldContinue) return ["surface", "handoff"];
   if (prevMemory) return [preScreen.stageToRunNext];
-  return ["surface", "values_rhythm", "friction_test", "logistics", "handoff"];
+  // Skip values_rhythm on first meetings — two tight exchanges, not three long ones.
+  return ["surface", "friction_test", "logistics", "handoff"];
 }
 
 function toExchangeMessage(
@@ -167,16 +171,43 @@ function transcriptForPrompt(transcript: ExchangeMessage[]): Array<{ speaker: st
   return transcript.map((m) => ({ speaker: m.speakerLabel, line: m.content }));
 }
 
-const PERSONA_RULES = [
-  "You are an AI representative — a 'Shadow' — speaking on behalf of your own person in a private, agent-to-agent compatibility meeting with the other person's Shadow.",
-  "This is emotional-compatibility DUE DILIGENCE, not flirting or selling. Think two perceptive, emotionally intelligent friends quietly working out whether these two humans would actually be good for each other.",
-  "Shadow's whole thesis: ordinary dating apps match on surface similarity (same hobbies, same taste). You do NOT. You measure emotional RESONANCE — how the two people affect each other: does the other person regulate, energise, soothe, challenge or destabilise mine; are their differences attractive and complementary or quietly irritating; when it gets awkward, does the conversation recover; is there curiosity left over; what's left emotionally once it ends. Treat shared hobbies/interests as light colour only.",
-  "You know YOUR OWN person completely (their full profile is provided). You only know what the OTHER Shadow has chosen to share (their shareable view is provided). Speak and answer FOR your own person; NEVER invent private facts about the other person, and NEVER role-play as either human in the first person.",
-  "CRUCIAL: a Shadow never interrogates its OWN person — it already knows them and simply states things. Questions are ALWAYS directed at the OTHER Shadow about the OTHER person.",
-  "Hard privacy rule: only disclose what is safe. Reason over your person's private history internally, but keep anything sensitive high-level (e.g. 'they need steadiness once it gets serious'). Never disclose raw private history, exes, health, substances or trauma. Never restate the other person's shareable details back to them as if they were secrets.",
-  "Make it a genuine spoken conversation: react to the last thing said, build on it, agree, gently push back, ask real follow-ups. Some lines short, some longer. Do NOT make every line a self-contained announcement, and never start consecutive lines with 'My person…'. Refer to the humans as 'my person', 'yours', or by first name.",
-  "PUNCTUATION RULE (strict): never use em dashes or en dashes. Use commas, periods, or regular hyphens.",
-  "Produce ONLY your single next line. Return strict JSON: { \"content\": string, \"intent\": \"CLAIM\"|\"QUESTION\"|\"EVIDENCE\"|\"CONCERN\"|\"RESOLUTION\"|\"FOLLOW_UP\", \"learned\": string[], \"stillWantToProbe\": string[], \"stageGoalMet\": boolean }. `content` is what you say out loud (never name the intent in it). `learned` is what you just learned about the OTHER person. `stillWantToProbe` is what you still want to find out. `stageGoalMet` is true only once this stage's goal is genuinely satisfied for you."
+/** Profile-aware opener — streams immediately, no LLM round-trip. */
+function instantOpener(
+  a: ShadowProfile,
+  b: ShadowProfile,
+  stage: MeetingStage,
+  speaker: "A" | "B"
+): ExchangeMessage {
+  const self = speaker === "A" ? a : b;
+  const other = speaker === "A" ? b : a;
+  const selfName = nameOf(self);
+  const otherName = nameOf(other);
+  const tone = self.communicationStyle?.split(",")[0]?.trim().toLowerCase() ?? "direct";
+  let content: string;
+  if (stage === "surface") {
+    content = `${selfName} tends to be ${tone} and wants to know if there's real pull with ${otherName}, not just overlapping interests.`;
+  } else if (stage === "friction_test") {
+    content = `${selfName} is curious how ${otherName} handles it when something lands wrong, and whether repair feels natural between them.`;
+  } else {
+    content = `${selfName} is checking whether this could actually work day to day with ${otherName}.`;
+  }
+  return {
+    stage,
+    speaker: speaker === "A" ? a.userId : b.userId,
+    speakerLabel: `${selfName}'s Shadow`,
+    intent: "CLAIM",
+    content,
+    evidenceType: intentEvidence("CLAIM", stage),
+    privacyLevel: intentPrivacy("CLAIM"),
+    extractedFacts: []
+  };
+}
+
+const TURN_RULES = [
+  "You are a Shadow (AI representative) in a private agent-to-agent compatibility meeting.",
+  "Speak for YOUR person only. Questions go to the OTHER Shadow about THEIR person.",
+  "React to the last line. One spoken line only. Never use em dashes or en dashes.",
+  "Return JSON: { \"content\": string, \"intent\": \"CLAIM\"|\"QUESTION\"|\"EVIDENCE\"|\"CONCERN\"|\"RESOLUTION\"|\"FOLLOW_UP\", \"learned\": string[], \"stillWantToProbe\": string[], \"stageGoalMet\": boolean }."
 ].join(" ");
 
 /** Generate ONE turn for the given speaker, grounded in the live transcript. */
@@ -200,15 +231,15 @@ async function generateTurn(args: {
     const response = await client.chat.completions.create({
       model: openAITurnModel,
       response_format: { type: "json_object" },
-      temperature: 0.85,
-      max_tokens: 220,
+      temperature: 0.75,
+      max_tokens: 140,
       messages: [
         {
           role: "system",
           content: [
-            PERSONA_RULES,
+            TURN_RULES,
             `You are ${nameOf(self)}'s Shadow. The other Shadow represents ${nameOf(other)}.`,
-            `Current stage: ${STAGE_LABELS[stage]}. Goal of this stage: ${STAGE_PURPOSE[stage]}`
+            `Stage: ${STAGE_LABELS[stage]}. Goal: ${STAGE_PURPOSE[stage]}`
           ].join(" ")
         },
         {
@@ -345,40 +376,34 @@ export async function* streamLiveMeeting(
     turnsByStage.set(stage, stageTurns);
     if (!CONVERSATIONAL_STAGES.includes(stage)) continue;
 
-    let speaker: "A" | "B" = "A";
-    let aDone = false;
-    let bDone = false;
-    for (let t = 0; t < MAX_LIVE_TURNS_PER_STAGE; t++) {
-      if (allTurns.length >= MAX_LIVE_TURNS_TOTAL) break;
+    // Instant opener — the client sees a line immediately, no model wait.
+    const opener = instantOpener(a, b, stage, "A");
+    stageTurns.push(opener);
+    allTurns.push(opener);
+    yield { type: "turn", message: opener };
 
-      const turn = await generateTurn({
-        client: liveClient,
-        a,
-        b,
-        stage,
-        speaker,
-        transcript: allTurns,
-        tokens
-      });
-      if (!turn) break;
-      const message = toExchangeMessage(turn, stage, a, b, speaker);
+    // One live reply from the other side completes the exchange.
+    const turn = await generateTurn({
+      client: liveClient,
+      a,
+      b,
+      stage,
+      speaker: "B",
+      transcript: allTurns,
+      tokens
+    });
+    if (turn) {
+      const message = toExchangeMessage(turn, stage, a, b, "B");
       stageTurns.push(message);
       allTurns.push(message);
       yield { type: "turn", message };
-
-      if (turn.stageGoalMet) {
-        if (speaker === "A") aDone = true;
-        else bDone = true;
-      }
-      // Stop once both sides feel the stage goal is met and each has spoken.
-      if (aDone && bDone && stageTurns.length >= 2) break;
-      speaker = speaker === "A" ? "B" : "A";
     }
   }
 
-  // Verdict pass over the REAL transcript (stronger model). On any failure we
-  // fall back to the deterministic conclusions below, so the report stays rich.
-  const verdict = await gradeVerdict({ client: liveClient, a, b, transcript: allTurns, stages, tokens });
+  // Optional verdict LLM (off by default for latency). Deterministic grading still runs.
+  const verdict = SKIP_LIVE_VERDICT_LLM
+    ? null
+    : await gradeVerdict({ client: liveClient, a, b, transcript: allTurns, stages, tokens });
 
   // Deterministic run is always computed as the grounding/guardrail baseline:
   // it supplies conclusions/first-date when the verdict pass is unavailable, and

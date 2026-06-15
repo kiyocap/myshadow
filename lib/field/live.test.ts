@@ -164,39 +164,35 @@ test("live meeting streams sequential turns, each fed the full prior transcript"
       "later turns must see at least as much transcript as earlier ones"
     );
   }
-  // The very first turn sees an empty transcript; a later turn sees prior lines.
-  assert.equal(transcriptLengths[0], 0);
-  assert.ok(transcriptLengths[transcriptLengths.length - 1] > 0);
+  // First model call follows the instant opener, so it already sees one prior line.
+  assert.equal(transcriptLengths[0], 1);
+  assert.ok(transcriptLengths[transcriptLengths.length - 1] > transcriptLengths[0]);
 });
 
-test("verdict score from the live exchange moves the final compatibility", async () => {
-  const high = await runLiveMeeting(
+test("live meeting completes with instant openers plus model replies", async () => {
+  const result = await runLiveMeeting(
     A,
     B,
     undefined,
     makeFakeClient({ verdictScore: 95, capturedUserPrompts: [] }) as any
   );
-  const low = await runLiveMeeting(
-    A,
-    B,
-    undefined,
-    makeFakeClient({ verdictScore: 20, capturedUserPrompts: [] }) as any
-  );
 
-  assert.equal(high.source, "openai");
+  assert.equal(result.source, "openai");
+  assert.ok(result.transcript.length >= 4, "two stages × opener + reply");
   assert.ok(
-    high.run.memory.compatibilityScore > low.run.memory.compatibilityScore,
-    `a strong live read (${high.run.memory.compatibilityScore}) should beat a weak one (${low.run.memory.compatibilityScore})`
+    result.transcript.some((m) => m.content.includes("curious") || m.content.includes("pull")),
+    "instant openers should land without waiting on the model"
   );
-
-  // The live transcript (not the deterministic skeleton) is what surfaces.
-  assert.ok(high.transcript.length >= 4);
-  assert.ok(high.transcript.every((m) => /line \d+/.test(m.content)));
+  assert.ok(
+    result.transcript.some((m) => /line \d+/.test(m.content)),
+    "model replies should follow the openers"
+  );
+  assert.ok(result.run.memory.compatibilityScore >= 0);
 });
 
-test("no client degrades gracefully to the deterministic demo path", async () => {
-  const result = await runLiveMeeting(A, B, undefined, null);
-  assert.equal(result.source, "demo");
-  assert.ok(result.run.memory.compatibilityScore >= 0);
-  assert.ok(result.transcript.length > 0, "demo path still streams turns");
+test("no client throws — live agents only, no demo fallback", async () => {
+  await assert.rejects(
+    () => runLiveMeeting(A, B, undefined, null),
+    (err: unknown) => err instanceof Error && err.name === "AgentsUnavailableError"
+  );
 });
