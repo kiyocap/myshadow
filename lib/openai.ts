@@ -22,11 +22,12 @@ export const openAITurnModel =
 
 /**
  * Model used for the single final verdict pass that reads the whole transcript
- * and grades emotional resonance. Fired once per meeting, so it can afford to be
- * a stronger (more expensive) model. Falls back to the turn model if unset.
+ * and grades emotional resonance. Defaults to the fast turn model so meetings
+ * finish inside Vercel's 60s serverless cap; set OPENAI_VERDICT_MODEL=gpt-4o
+ * for higher-quality reads when you have a longer maxDuration.
  */
 export const openAIVerdictModel =
-  process.env.OPENAI_VERDICT_MODEL ?? process.env.OPENAI_MODEL ?? "gpt-4o";
+  process.env.OPENAI_VERDICT_MODEL ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini";
 
 export const embeddingModel =
   process.env.OPENAI_EMBEDDING_MODEL ?? "text-embedding-3-large";

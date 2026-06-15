@@ -20,8 +20,7 @@
 //      the real turns, with the live resonance read BLENDED into the score and
 //      non-negotiable conflicts kept as a hard guardrail.
 //
-// Degrades gracefully with no OPENAI_API_KEY (or a failed verdict pass) to the
-// existing deterministic/narrated path, still streaming turn-by-turn.
+// Requires OPENAI_API_KEY — there is no demo/deterministic dialogue fallback.
 
 import { z } from "zod";
 
@@ -41,7 +40,6 @@ import {
   intentEvidence,
   intentPrivacy,
   leaksPrivateData,
-  runShadowMeetingAI,
   shareableView
 } from "./llm.ts";
 import {
@@ -57,11 +55,15 @@ import {
 } from "./types.ts";
 
 /**
- * Per-stage turn cap for the live conversation. Stays at or under the engine's
- * MAX_TURNS_PER_STAGE (=8); kept slightly lower to bound latency/cost since each
- * turn is its own sequential model call.
+ * Per-stage turn cap for the live conversation. Each turn is a sequential LLM
+ * call (~3–5s). Vercel's default serverless wall is 60s, so the full meeting
+ * (3 conversational stages × this cap + one verdict pass) must stay under ~50s
+ * of model time. Was 6 (up to 18 turns); 3 keeps quality while fitting the cap.
  */
-const MAX_LIVE_TURNS_PER_STAGE = 6;
+const MAX_LIVE_TURNS_PER_STAGE = 3;
+
+/** Hard stop for a whole meeting — safety net if stages run long. */
+const MAX_LIVE_TURNS_TOTAL = 10;
 
 /** Default live resonance weight when blending with the deterministic read. */
 const LIVE_RESONANCE_WEIGHT = 0.55;
@@ -73,7 +75,19 @@ const LIVE_RESONANCE_WEIGHT = 0.55;
  */
 const CONVERSATIONAL_STAGES: MeetingStage[] = ["surface", "values_rhythm", "friction_test"];
 
-export type LiveMeetingSource = "openai" | "demo";
+export type LiveMeetingSource = "openai";
+
+class AgentsUnavailableError extends Error {
+  constructor(message = "Live agent conversations require OPENAI_API_KEY to be configured.") {
+    super(message);
+    this.name = "AgentsUnavailableError";
+  }
+}
+
+function requireLiveClient(client: MeetingClient): NonNullable<MeetingClient> {
+  if (!client) throw new AgentsUnavailableError();
+  return client;
+}
 
 export type LiveMeetingEvent =
   | { type: "meta"; source: LiveMeetingSource; preScreen: PreScreenResult }
@@ -187,7 +201,7 @@ async function generateTurn(args: {
       model: openAITurnModel,
       response_format: { type: "json_object" },
       temperature: 0.85,
-      max_tokens: 320,
+      max_tokens: 220,
       messages: [
         {
           role: "system",
@@ -244,7 +258,7 @@ async function gradeVerdict(args: {
       model: openAIVerdictModel,
       response_format: { type: "json_object" },
       temperature: 0.3,
-      max_tokens: 900,
+      max_tokens: 650,
       messages: [
         {
           role: "system",
@@ -297,33 +311,11 @@ async function gradeVerdict(args: {
 }
 
 /**
- * Graceful-degradation path: no API key, or pre-screen says a full live
- * conversation isn't warranted. Reuse the existing deterministic/narrated
- * engine, but still emit the same streamed events so the client behaves
- * identically.
- */
-async function* streamFallback(
-  a: ShadowProfile,
-  b: ShadowProfile,
-  options: LiveMeetingOptions | undefined,
-  preScreen: PreScreenResult
-): AsyncGenerator<LiveMeetingEvent> {
-  const run = await runShadowMeetingAI(a, b, options);
-  yield { type: "meta", source: run.source, preScreen: run.preScreen };
-  const total = run.stageResults.length;
-  for (let i = 0; i < run.stageResults.length; i++) {
-    const sr = run.stageResults[i];
-    yield { type: "stage", stage: sr.stage, label: STAGE_LABELS[sr.stage], index: i, total };
-    for (const message of sr.exchange) {
-      yield { type: "turn", message };
-    }
-  }
-  yield { type: "verdict", run, source: run.source };
-}
-
-/**
  * Stream a genuine turn-by-turn Shadow meeting. Each yielded event is meant to
  * be serialised straight to an SSE stream by the route.
+ *
+ * There is NO demo/deterministic fallback — if the OpenAI client is missing the
+ * stream errors immediately so the client knows agents are unavailable.
  */
 export async function* streamLiveMeeting(
   a: ShadowProfile,
@@ -333,13 +325,8 @@ export async function* streamLiveMeeting(
   // sequential turn loop can be exercised without a real key.
   client: MeetingClient = getOpenAI()
 ): AsyncGenerator<LiveMeetingEvent> {
+  const liveClient = requireLiveClient(client);
   const preScreen = buildCandidatePreScreen(a, b, options?.prevMemory);
-
-  // No key, or not worth a full live conversation → degrade gracefully.
-  if (!client || !preScreen.shouldContinue) {
-    yield* streamFallback(a, b, options, preScreen);
-    return;
-  }
 
   yield { type: "meta", source: "openai", preScreen };
 
@@ -349,6 +336,8 @@ export async function* streamLiveMeeting(
   const turnsByStage = new Map<MeetingStage, ExchangeMessage[]>();
 
   for (let i = 0; i < stages.length; i++) {
+    if (allTurns.length >= MAX_LIVE_TURNS_TOTAL) break;
+
     const stage = stages[i];
     yield { type: "stage", stage, label: STAGE_LABELS[stage], index: i, total: stages.length };
 
@@ -360,8 +349,10 @@ export async function* streamLiveMeeting(
     let aDone = false;
     let bDone = false;
     for (let t = 0; t < MAX_LIVE_TURNS_PER_STAGE; t++) {
+      if (allTurns.length >= MAX_LIVE_TURNS_TOTAL) break;
+
       const turn = await generateTurn({
-        client,
+        client: liveClient,
         a,
         b,
         stage,
@@ -387,7 +378,7 @@ export async function* streamLiveMeeting(
 
   // Verdict pass over the REAL transcript (stronger model). On any failure we
   // fall back to the deterministic conclusions below, so the report stays rich.
-  const verdict = await gradeVerdict({ client, a, b, transcript: allTurns, stages, tokens });
+  const verdict = await gradeVerdict({ client: liveClient, a, b, transcript: allTurns, stages, tokens });
 
   // Deterministic run is always computed as the grounding/guardrail baseline:
   // it supplies conclusions/first-date when the verdict pass is unavailable, and
@@ -443,22 +434,15 @@ export async function runLiveMeeting(
   client: MeetingClient = getOpenAI()
 ): Promise<{ run: ShadowMeetingRun; source: LiveMeetingSource; transcript: ExchangeMessage[] }> {
   let run: ShadowMeetingRun | null = null;
-  let source: LiveMeetingSource = "demo";
   const transcript: ExchangeMessage[] = [];
   for await (const event of streamLiveMeeting(a, b, options, client)) {
     if (event.type === "turn") transcript.push(event.message);
-    else if (event.type === "verdict") {
-      run = event.run;
-      source = event.source;
-    } else if (event.type === "meta") {
-      source = event.source;
-    }
+    else if (event.type === "verdict") run = event.run;
   }
   if (!run) {
-    // Should never happen, but keep a deterministic floor.
-    run = runShadowMeeting(a, b, options);
+    throw new AgentsUnavailableError("The live agent meeting ended without a verdict.");
   }
-  return { run, source, transcript };
+  return { run, source: "openai", transcript };
 }
 
 // Keep MEETING_STAGES referenced so the ordered-stage contract stays in sync.

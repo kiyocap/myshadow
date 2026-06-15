@@ -20,7 +20,9 @@ Production URL: `https://shadowdating.vercel.app`
 | `NEXTAUTH_SECRET` | Yes | `openssl rand -base64 32` |
 | `NEXT_PUBLIC_APP_URL` | Yes | Same as `NEXTAUTH_URL`. |
 | `OPENAI_API_KEY` | Recommended | Without it: profile generation and field meetings use demo fallbacks; voice transcribe returns 501. |
-| `OPENAI_MODEL` | Optional | Default `gpt-4o-mini`. |
+| `OPENAI_MODEL` | Optional | Default `gpt-4o-mini` (turn dialogue + verdict). |
+| `OPENAI_TURN_MODEL` | Optional | Override turn-by-turn dialogue model only. |
+| `OPENAI_VERDICT_MODEL` | Optional | Override verdict model (e.g. `gpt-4o` for richer reads on Pro plans with `maxDuration` > 60s). |
 | `OPENAI_EMBEDDING_MODEL` | Optional | Default `text-embedding-3-large`. |
 | `OPENAI_TRANSCRIBE_MODEL` | Optional | Default `whisper-1`. |
 | `REQUIRE_AUTH` | Optional | Set `true` to require sign-in on web routes. |
@@ -35,14 +37,21 @@ npm run typecheck
 npm run build
 ```
 
+## Live meetings and the 60s serverless cap
+
+Vercel Hobby/Pro default function timeout is **60 seconds**. A live meeting fires many sequential OpenAI calls, so `lib/field/live.ts` caps each conversational stage at **3 turns** (max **10 turns** total) so `/api/field/meet/stream` reliably finishes with a verdict before the wall.
+
+- Prefer **`POST /api/field/meet/stream`** (SSE) from the iOS app — it streams turns as they arrive.
+- **`POST /api/field/meet`** (one-shot) uses the same engine but often hits the 60s wall because the response is buffered until the end.
+- On plans with **`maxDuration = 300`**, you can raise quality by setting `OPENAI_VERDICT_MODEL=gpt-4o` and optionally increasing turn caps in `live.ts`.
+
 ## Graceful degradation without OpenAI
 
 | Route / feature | No `OPENAI_API_KEY` behavior |
 |-----------------|------------------------------|
 | `POST /api/shadow/generate` | Returns demo profile (`embeddingStatus: "demo"`). |
-| `POST /api/field/meet` | Returns deterministic demo run. |
+| `POST /api/field/meet` / `meet/stream` | **502** — live agents only, no demo fallback. |
 | `POST /api/shadow/transcribe` | Returns **501** with a clear message. |
-| Real AI meetings (`generateAIMeeting`) | **502** / meeting marked failed. |
 
 Set `OPENAI_API_KEY` before App Store review if reviewers will use voice-note transcription or live AI meetings.
 
