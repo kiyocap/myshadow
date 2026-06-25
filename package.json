@@ -12,6 +12,7 @@
     "test:field": "node --experimental-strip-types --test lib/field/*.test.ts",
     "check:real-flow": "node scripts/check-real-flow.mjs",
     "check:paired-meeting": "node scripts/check-paired-meeting.mjs",
+    "check:mobile-chat-rc": "node scripts/check-mobile-chat-rc.mjs",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
