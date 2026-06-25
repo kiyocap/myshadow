@@ -66,6 +66,7 @@ model User {
   likesReceived MatchLike[]    @relation("MatchLikesReceived")
   blocksSent    UserBlock[]    @relation("UserBlocksSent")
   blocksReceived UserBlock[]   @relation("UserBlocksReceived")
+  reportsFiled  SafetyReport[] @relation("SafetyReportsFiled")
 }
 
 model Account {
@@ -289,4 +290,24 @@ model UserBlock {
 
   @@unique([blockerId, blockedId])
   @@index([blockedId])
+}
+
+model SafetyReport {
+  id               String   @id
+  reporterId       String
+  reporter         User     @relation("SafetyReportsFiled", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUserId   String?
+  reportedUserName String
+  threadId         String?
+  messageId        String?
+  reason           String
+  reasonLabel      String
+  details          String?  @db.Text
+  appBuild         String?
+  appVersion       String?
+  createdAt        DateTime
+  receivedAt       DateTime @default(now())
+
+  @@index([reporterId, receivedAt])
+  @@index([reportedUserId])
 }

@@ -163,6 +163,29 @@ try {
     "A did not see B's reply after reload"
   );
 
+  const reportId = `${runId}_report_a_b`;
+  const report = await post("/api/mobile/reports", {
+    identity: a.identity,
+    reportId,
+    reporterEmail: a.email,
+    reportedUserId: b.id,
+    reportedUserName: b.name,
+    reason: "other",
+    reasonLabel: "Something else",
+    details: "RC report persistence check",
+    createdAt: new Date().toISOString(),
+    appBuild: "rc-script",
+    appVersion: "rc"
+  });
+  assert(report.status === 200, `report expected 200, got ${report.status}`);
+  assert(report.payload.ok === true && report.payload.stored === true, "report response did not confirm storage");
+
+  const storedReport = await prisma.safetyReport.findUnique({
+    where: { id: reportId }
+  });
+  assert(storedReport?.reporterId === a.id, "report was not stored with reporter id");
+  assert(storedReport?.reportedUserId === b.id, "report was not stored with reported user id");
+
   const cFetch = await post("/api/mobile/chats/thread", {
     identity: c.identity,
     candidate: a.candidate

@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { databaseReady } from "@/lib/db-shadow";
 import { requireLiveMobileUser } from "@/lib/mobile-auth";
+import { getPrisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,7 +34,10 @@ const reportSchema = z.object({
   reasonLabel: z.string().trim().min(1).max(120),
   details: z.string().trim().max(4000).optional().nullable(),
   createdAt: z.coerce.date().optional(),
-  appBuild: z.string().trim().max(64).optional().nullable()
+  appBuild: z.string().trim().max(64).optional().nullable(),
+  appVersion: z.string().trim().max(64).optional().nullable(),
+  threadId: z.string().trim().max(128).optional().nullable(),
+  messageId: z.string().trim().max(128).optional().nullable()
 });
 
 export async function POST(request: Request) {
@@ -78,6 +82,37 @@ export async function POST(request: Request) {
   }
 
   const receivedAt = new Date();
+  const db = getPrisma();
+  const storedReport = await db.safetyReport.upsert({
+    where: { id: report.reportId },
+    create: {
+      id: report.reportId,
+      reporterId: reporter.id,
+      reportedUserId: report.reportedUserId,
+      reportedUserName: report.reportedUserName,
+      threadId: report.threadId ?? null,
+      messageId: report.messageId ?? null,
+      reason: report.reason,
+      reasonLabel: report.reasonLabel,
+      details: report.details?.trim() || null,
+      appBuild: report.appBuild ?? null,
+      appVersion: report.appVersion ?? null,
+      createdAt: report.createdAt ?? receivedAt,
+      receivedAt
+    },
+    update: {
+      reporterId: reporter.id,
+      reportedUserId: report.reportedUserId,
+      reportedUserName: report.reportedUserName,
+      threadId: report.threadId ?? null,
+      messageId: report.messageId ?? null,
+      reason: report.reason,
+      reasonLabel: report.reasonLabel,
+      details: report.details?.trim() || null,
+      appBuild: report.appBuild ?? null,
+      appVersion: report.appVersion ?? null
+    }
+  });
   const safetyInbox =
     process.env.SAFETY_REPORT_EMAIL ?? "hewie@humanityone.world";
 
@@ -101,6 +136,7 @@ export async function POST(request: Request) {
           `Created at: ${(report.createdAt ?? receivedAt).toISOString()}`,
           `Received at: ${receivedAt.toISOString()}`,
           `App build: ${report.appBuild ?? "unknown"}`,
+          `Stored report: ${storedReport.id}`,
           "",
           "Details:",
           report.details?.trim() || "(none)"
@@ -122,5 +158,10 @@ export async function POST(request: Request) {
     });
   }
 
-  return NextResponse.json({ ok: true, delivered });
+  return NextResponse.json({
+    ok: true,
+    stored: true,
+    reportId: storedReport.id,
+    delivered
+  });
 }
