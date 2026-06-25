@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:wasm": "NEXT_TEST_WASM=1 NEXT_TEST_WASM_DIR=./node_modules/@next/swc-wasm-nodejs next dev",
-    "build": "prisma db push && prisma generate && next build",
+    "build": "prisma migrate deploy && prisma generate && next build",
     "build:wasm": "prisma generate && NEXT_TEST_WASM=1 NEXT_TEST_WASM_DIR=./node_modules/@next/swc-wasm-nodejs next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
@@ -13,8 +13,10 @@
     "check:real-flow": "node scripts/check-real-flow.mjs",
     "check:paired-meeting": "node scripts/check-paired-meeting.mjs",
     "check:mobile-chat-rc": "node scripts/check-mobile-chat-rc.mjs",
+    "check:production-db": "node scripts/check-production-db-smoke.mjs",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
