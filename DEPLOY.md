@@ -19,15 +19,19 @@ Production URL: `https://meetmyshadow.vercel.app`
 | `NEXTAUTH_URL` | Yes | Production app URL, e.g. `https://meetmyshadow.vercel.app`. |
 | `NEXTAUTH_SECRET` | Yes | `openssl rand -base64 32` |
 | `NEXT_PUBLIC_APP_URL` | Yes | Same as `NEXTAUTH_URL`. |
+| `MOBILE_APPLE_AUDIENCE` | Yes | iOS Sign in with Apple audience / bundle id. For this app: `com.humanityone.shadow`. `APPLE_BUNDLE_ID` or `IOS_BUNDLE_ID` can also be used, but set this explicitly for release. |
 | `OPENAI_API_KEY` | Recommended | Without it: profile generation and field meetings use demo fallbacks; voice transcribe returns 501. |
 | `OPENAI_MODEL` | Optional | Default `gpt-4o-mini` (turn dialogue + verdict). |
 | `OPENAI_TURN_MODEL` | Optional | Override turn-by-turn dialogue model only. |
 | `OPENAI_VERDICT_MODEL` | Optional | Override verdict model (e.g. `gpt-4o` for richer reads on Pro plans with `maxDuration` > 60s). |
 | `OPENAI_EMBEDDING_MODEL` | Optional | Default `text-embedding-3-large`. |
 | `OPENAI_TRANSCRIBE_MODEL` | Optional | Default `whisper-1`. |
+| `SAFETY_REPORT_EMAIL` | Recommended | Inbox for safety report email notifications. Reports are stored in DB even if email vars are absent. |
+| `RESEND_API_KEY` | Optional | Needed only for magic-link email and safety report email delivery. |
+| `EMAIL_FROM` | Optional | Required with `RESEND_API_KEY` for outbound email, e.g. `Shadow <support@yourdomain.com>`. |
 | `REQUIRE_AUTH` | Optional | Set `true` to require sign-in on web routes. |
 
-OAuth, Stripe, and email vars are only needed if you enable those flows on web.
+Stripe vars are only needed if web checkout is enabled: `STRIPE_SECRET_KEY`, `STRIPE_PREMIUM_PRICE_ID`, and `STRIPE_WEBHOOK_SECRET`.
 
 ## Build locally
 
@@ -36,6 +40,28 @@ npm install
 npm run typecheck
 npm run build
 ```
+
+## Database migrations for this RC
+
+These migrations must be applied to the production database before the iOS RC is tested:
+
+- `20260622111500_add_mobile_chat` — `ChatThread`, `ChatMessage`, `MatchLike`
+- `20260625100000_add_mobile_blocks` — `UserBlock`
+- `20260625103000_add_safety_reports` — `SafetyReport`
+
+The current Vercel build script runs `prisma db push && prisma generate && next build`, which will push schema changes. For a stricter production deploy, run Prisma migrations against production before deploy instead.
+
+## Release smoke test
+
+After deploying the backend and applying schema changes, run:
+
+```bash
+SHADOW_BASE_URL=https://meetmyshadow.vercel.app \
+SHADOW_DATABASE_URL="$DATABASE_URL" \
+node scripts/check-mobile-chat-rc.mjs
+```
+
+This creates temporary RC test users/sessions, confirms guest rejection, mutual-match chat, message persistence, report storage, server-side blocking, hidden blocked chat lists, and direct API block enforcement.
 
 ## Live meetings and latency
 
