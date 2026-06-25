@@ -3,13 +3,13 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Shadow - Let your AIs meet first",
+  title: "Shadow - AI agents that understand you",
   description:
-    "Create AI representatives that learn about each person, meet before you do, and generate compatibility insights.",
+    "Shadow builds an attentive AI representative of who you are, introduces it to others, and gives you compatibility insight before you spend real time.",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
   openGraph: {
     title: "Shadow",
-    description: "Before your first date, let your AIs talk.",
+    description: "Chemistry you can actually inspect.",
     type: "website"
   }
 };

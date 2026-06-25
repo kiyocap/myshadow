@@ -59,6 +59,11 @@ model User {
   proxy         Proxy?
   subscriptions Subscription[]
   shareCards    ShareCard[]
+  chatThreadsA  ChatThread[]   @relation("ChatThreadA")
+  chatThreadsB  ChatThread[]   @relation("ChatThreadB")
+  chatMessages  ChatMessage[]
+  likesSent     MatchLike[]    @relation("MatchLikesSent")
+  likesReceived MatchLike[]    @relation("MatchLikesReceived")
 }
 
 model Account {
@@ -228,4 +233,46 @@ model ShareCard {
   text      String
   imageUrl  String?
   createdAt DateTime @default(now())
+}
+
+model ChatThread {
+  id             String        @id @default(cuid())
+  pairKey        String        @unique
+  participantAId String
+  participantBId String
+  participantA   User          @relation("ChatThreadA", fields: [participantAId], references: [id], onDelete: Cascade)
+  participantB   User          @relation("ChatThreadB", fields: [participantBId], references: [id], onDelete: Cascade)
+  candidateName  String?
+  candidateMeta  Json?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  messages       ChatMessage[]
+
+  @@index([participantAId])
+  @@index([participantBId])
+}
+
+model ChatMessage {
+  id        String     @id @default(cuid())
+  threadId  String
+  senderId  String
+  body      String     @db.Text
+  createdAt DateTime   @default(now())
+  thread    ChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender    User       @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+  @@index([senderId])
+}
+
+model MatchLike {
+  id        String   @id @default(cuid())
+  likerId   String
+  likedId   String
+  liker     User     @relation("MatchLikesSent", fields: [likerId], references: [id], onDelete: Cascade)
+  liked     User     @relation("MatchLikesReceived", fields: [likedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([likerId, likedId])
+  @@index([likedId])
 }

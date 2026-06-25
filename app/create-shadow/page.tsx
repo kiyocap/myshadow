@@ -26,10 +26,14 @@ export default async function CreateShadowPage({
   return (
     <main className="min-h-screen bg-background px-5 py-8 sm:px-8">
       <div className="mx-auto mb-8 flex max-w-7xl items-center justify-between">
-        <Link href="/" className="text-sm font-semibold">
-          Shadow
+        <Link href="/" className="flex items-center gap-2.5">
+          <svg width="22" height="15" viewBox="0 0 26 18" fill="none" aria-hidden="true">
+            <circle cx="9" cy="9" r="7.25" stroke="currentColor" strokeWidth="1.1" opacity="0.9" />
+            <circle cx="17" cy="9" r="7.25" stroke="currentColor" strokeWidth="1.1" opacity="0.55" />
+          </svg>
+          <span className="font-display text-base font-medium tracking-tightish">Shadow</span>
         </Link>
-        <Link href="/dashboard" className="text-sm text-muted-foreground">
+        <Link href="/dashboard" className="link-underline text-sm text-muted-foreground">
           Dashboard
         </Link>
       </div>

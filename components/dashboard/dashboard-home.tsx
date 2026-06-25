@@ -33,27 +33,12 @@ type MeetingRow = {
 };
 
 function ProxyBurst({ tone = "blue" }: { tone?: "blue" | "violet" }) {
-  const accent = tone === "blue" ? "#2563eb" : "#8b5cf6";
-
   return (
-    <div
-      className="relative h-16 w-16 rounded-full bg-black"
-      style={{ boxShadow: `0 0 26px ${accent}35` }}
-    >
-      <span
-        className="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full"
-        style={{ background: accent, boxShadow: `0 0 18px ${accent}` }}
-      />
-      {Array.from({ length: 4 }).map((_, index) => (
-        <span
-          key={index}
-          className="absolute rounded-full border"
-          style={{
-            inset: `${6 + index * 7}px`,
-            borderColor: `${accent}30`
-          }}
-        />
-      ))}
+    <div className="flex h-16 w-16 items-center justify-center rounded-full border border-border bg-ink">
+      <svg width="30" height="20" viewBox="0 0 26 18" fill="none" aria-hidden="true">
+        <circle cx="9" cy="9" r="7" stroke="hsl(40 33% 94%)" strokeWidth="1" opacity={tone === "blue" ? 0.92 : 0.6} />
+        <circle cx="17" cy="9" r="7" stroke="hsl(350 30% 55%)" strokeWidth="1" opacity={tone === "blue" ? 0.92 : 0.6} />
+      </svg>
     </div>
   );
 }
@@ -103,19 +88,13 @@ function MeetingPreview({
     })) ?? transcriptPreview.slice(0, 4);
 
   return (
-    <section className="rounded-lg border border-border bg-white p-6 shadow-sm">
+    <section className="border border-border bg-card p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold">
-            {latestMeeting ? "Latest AI Meeting" : "AI Meeting Preview"}
+          <h2 className="font-display text-xl font-light tracking-tightish">
+            {latestMeeting ? "Latest introduction" : "Introduction preview"}
           </h2>
-          <Badge
-            className={
-              latestMeeting?.source === "openai"
-                ? "mt-4 border-blue-200 bg-blue-50 text-blue-700"
-                : "mt-4 border-emerald-200 bg-emerald-50 text-emerald-700"
-            }
-          >
+          <Badge tone={latestMeeting?.source === "openai" ? "blue" : "neutral"} className="mt-4">
             {sourceLabel}
           </Badge>
         </div>
@@ -126,14 +105,14 @@ function MeetingPreview({
 
       <div className="mt-8 flex flex-col items-center">
         <div className="relative flex min-h-48 w-full flex-col items-center justify-center gap-8 sm:flex-row sm:gap-0">
-          <div className="absolute hidden h-px w-[44%] bg-blue-600/25 sm:block" />
-          <div className="absolute hidden h-px w-[24%] translate-x-16 bg-blue-600 sm:block" />
-          <div className="absolute h-[58%] w-px bg-blue-600/25 sm:hidden" />
-          <div className="absolute h-[28%] w-px translate-y-10 bg-blue-600 sm:hidden" />
+          <div className="absolute hidden h-px w-[44%] bg-border sm:block" />
+          <div className="absolute hidden h-px w-[24%] translate-x-16 bg-claret sm:block" />
+          <div className="absolute h-[58%] w-px bg-border sm:hidden" />
+          <div className="absolute h-[28%] w-px translate-y-10 bg-claret sm:hidden" />
           <div className="flex flex-col items-center gap-3">
             <ProxyBurst />
             <div className="text-center">
-              <p className="font-semibold">{profileName} AI</p>
+              <p className="font-display text-sm">{profileName} AI</p>
               <p className="text-xs text-muted-foreground">Digital Representative</p>
             </div>
           </div>
@@ -141,12 +120,12 @@ function MeetingPreview({
           <div className="flex flex-col items-center gap-3">
             <ProxyBurst tone="violet" />
             <div className="text-center">
-              <p className="font-semibold">{partnerName} AI</p>
+              <p className="font-display text-sm">{partnerName} AI</p>
               <p className="text-xs text-muted-foreground">Digital Representative</p>
             </div>
           </div>
         </div>
-        <Badge className="border-border bg-muted text-foreground">
+        <Badge className="bg-muted text-foreground">
           {latestMeeting ? "Report ready" : "Discussing Values"}
         </Badge>
       </div>
@@ -158,8 +137,8 @@ function MeetingPreview({
               <span
                 className={
                   line.speaker.startsWith(profileName)
-                    ? "h-2 w-2 rounded-full bg-blue-600"
-                    : "h-2 w-2 rounded-full bg-violet-600"
+                    ? "h-2 w-2 rounded-full bg-claret"
+                    : "h-2 w-2 rounded-full bg-foreground"
                 }
               />
               <span className="truncate">{line.speaker}</span>
@@ -220,10 +199,10 @@ export function DashboardHome({
 
   return (
     <div className="mx-auto max-w-7xl">
-      <section className="rounded-lg border border-border bg-white p-6 shadow-sm">
+      <section className="border border-border bg-card p-6">
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
           <div>
-            <h1 className="text-2xl font-semibold tracking-normal">
+            <h1 className="font-display text-3xl font-light tracking-tightish">
               Welcome back, {profileName}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
@@ -232,48 +211,48 @@ export function DashboardHome({
           </div>
           <Button asChild variant="secondary" size="sm">
             <Link href="/dashboard/meetings">
-              New meeting <ArrowRight className="h-4 w-4" />
+              New introduction <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          <div className="rounded-lg border border-border p-5">
-            <p className="text-xs text-muted-foreground">Your Shadow</p>
+        <div className="mt-8 grid gap-px overflow-hidden border border-border bg-border md:grid-cols-3">
+          <div className="bg-background p-5">
+            <p className="eyebrow text-muted-foreground">Your Shadow</p>
             <div className="mt-5 flex items-center justify-between gap-4">
               <div>
-                <p className="text-xl font-semibold">{profileName} AI</p>
-                <Link href="/dashboard/my-shadow" className="mt-2 block text-xs text-blue-700">
+                <p className="font-display text-xl font-light">{profileName} AI</p>
+                <Link href="/dashboard/my-shadow" className="link-underline mt-2 inline-flex text-xs text-claret">
                   View profile
                 </Link>
               </div>
               <ProxyBurst />
             </div>
           </div>
-          <div className="rounded-lg border border-border p-5">
-            <p className="text-xs text-muted-foreground">AI Meetings</p>
-            <p className="mt-6 text-3xl font-semibold">{latestMeeting ? "1" : "0"}</p>
+          <div className="bg-background p-5">
+            <p className="eyebrow text-muted-foreground">Introductions</p>
+            <p className="mt-6 font-display text-4xl font-light tracking-tighter2">{latestMeeting ? "1" : "0"}</p>
             <p className="mt-2 text-xs text-muted-foreground">
               {latestMeeting ? "Saved this session" : "No real meetings yet"}
             </p>
           </div>
-          <div className="rounded-lg border border-border p-5">
-            <p className="text-xs text-muted-foreground">Compatibility</p>
+          <div className="bg-background p-5">
+            <p className="eyebrow text-muted-foreground">Compatibility</p>
             <div className="mt-6 flex items-center justify-between">
               <div>
-                <p className="text-3xl font-semibold">{latestReport.overallScore}%</p>
+                <p className="font-display text-4xl font-light tracking-tighter2">{latestReport.overallScore}%</p>
                 <p className="mt-2 text-xs text-muted-foreground">
                   {latestMeeting ? "Latest score" : "Average score"}
                 </p>
               </div>
-              <div className="h-14 w-14 rounded-full border-4 border-blue-600 border-l-muted" />
+              <div className="h-14 w-14 rounded-full border-2 border-claret border-l-border" />
             </div>
           </div>
         </div>
 
-        <section className="mt-8 rounded-lg border border-border">
+        <section className="mt-8 border border-border">
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
-            <h2 className="font-semibold">Recent AI Meetings</h2>
+            <h2 className="font-display text-lg font-light">Recent introductions</h2>
             <Button asChild variant="secondary" size="sm">
               <Link href="/dashboard/meetings">View all</Link>
             </Button>
@@ -287,10 +266,10 @@ export function DashboardHome({
                   className="grid grid-cols-[1fr_auto] items-center gap-4 px-5 py-4 transition-colors hover:bg-muted"
                 >
                   <div className="flex items-center gap-4">
-                    <span className="h-2.5 w-2.5 rounded-full bg-blue-600 shadow-[0_0_12px_rgba(37,99,235,0.8)]" />
+                    <span className="h-2 w-2 rounded-full bg-claret" />
                     <div>
                       <p className="text-sm font-medium">
-                        {meeting.a} <span className="mx-2 text-muted-foreground">x</span>{" "}
+                        {meeting.a} <span className="mx-2 text-muted-foreground">×</span>{" "}
                         {meeting.b}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
@@ -298,15 +277,15 @@ export function DashboardHome({
                       </p>
                     </div>
                   </div>
-                  <p className="text-xl font-semibold">{meeting.score}</p>
+                  <p className="font-display text-xl font-light">{meeting.score}</p>
                 </Link>
               ))
             ) : (
               <div className="px-5 py-8">
-                <p className="text-sm font-medium">No recent AI meetings yet.</p>
+                <p className="text-sm font-medium">No recent introductions yet.</p>
                 <p className="mt-2 max-w-lg text-sm leading-6 text-muted-foreground">
-                  Invite someone from AI Meetings. Once their Shadow accepts, the real
-                  meeting and report will appear here.
+                  Invite someone from Introductions. Once their Shadow accepts, the
+                  meeting and reading will appear here.
                 </p>
                 <Button asChild className="mt-5" size="sm">
                   <Link href="/dashboard/meetings">
@@ -326,9 +305,9 @@ export function DashboardHome({
           profileName={profileName}
         />
         <section className="grid gap-6">
-          <div className="rounded-lg border border-border bg-white p-6 shadow-sm">
-            <Bot className="h-5 w-5 text-blue-600" />
-            <h2 className="mt-5 text-lg font-semibold">My Shadow</h2>
+          <div className="border border-border bg-card p-6">
+            <Bot className="h-5 w-5 text-claret" />
+            <h2 className="mt-5 font-display text-lg font-light">My Shadow</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
               {localProfile
                 ? `${profileName} AI is built from ${localProfile.selectedSignalCount} guided signals and ${localProfile.importWordCount} imported words.`
@@ -338,24 +317,23 @@ export function DashboardHome({
               <Link href="/dashboard/my-shadow">Review profile</Link>
             </Button>
           </div>
-          <div className="rounded-lg border border-black bg-black p-6 text-white shadow-sm">
-            <FileText className="h-5 w-5 text-blue-300" />
-            <h2 className="mt-5 text-lg font-semibold">What Your AIs Learned</h2>
-            <p className="mt-2 text-sm leading-6 text-white/65">
+          <div className="bg-ink p-6 text-paper">
+            <FileText className="h-5 w-5 text-paper/70" />
+            <h2 className="mt-5 font-display text-lg font-light">The reading</h2>
+            <p className="mt-2 text-sm leading-6 text-paper/65">
               {latestMeeting
-                ? "The latest compatibility report is saved locally and ready to share."
-                : "The latest compatibility report is ready to share or export."}
+                ? "The latest compatibility reading is saved locally and ready to share."
+                : "The latest compatibility reading is ready to share or export."}
             </p>
             <div className="mt-5 flex items-center justify-between">
-              <p className="text-5xl font-semibold">{latestReport.overallScore}%</p>
-              <MessageSquare className="h-6 w-6 text-white/40" />
+              <p className="font-display text-5xl font-light tracking-tighter2">{latestReport.overallScore}%</p>
+              <MessageSquare className="h-6 w-6 text-paper/40" />
             </div>
             <Button
               asChild
-              variant="secondary"
-              className="mt-5 border-white/20 bg-white text-black hover:bg-white/90"
+              className="mt-5 bg-paper text-ink hover:bg-paper/90"
             >
-              <Link href={latestHref}>Open report</Link>
+              <Link href={latestHref}>Open reading</Link>
             </Button>
           </div>
         </section>

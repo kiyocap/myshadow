@@ -170,8 +170,12 @@ export function MeetingRoom({ meetingId }: { meetingId: string }) {
   return (
     <main className="min-h-screen bg-background">
       <header className="flex h-16 items-center justify-between border-b border-border px-5 sm:px-8">
-        <Link href="/" className="text-sm font-semibold">
-          Shadow
+        <Link href="/" className="flex items-center gap-2.5">
+          <svg width="22" height="15" viewBox="0 0 26 18" fill="none" aria-hidden="true">
+            <circle cx="9" cy="9" r="7.25" stroke="currentColor" strokeWidth="1.1" opacity="0.9" />
+            <circle cx="17" cy="9" r="7.25" stroke="currentColor" strokeWidth="1.1" opacity="0.55" />
+          </svg>
+          <span className="font-display text-base font-medium tracking-tightish">Shadow</span>
         </Link>
         <div className="flex items-center gap-2">
           <Badge tone="blue">
@@ -203,14 +207,14 @@ export function MeetingRoom({ meetingId }: { meetingId: string }) {
       </header>
 
       <section className="mx-auto grid max-w-7xl gap-8 px-5 py-8 sm:px-8 xl:grid-cols-[0.95fr_1.05fr]">
-        <div className="order-2 border border-border bg-white p-5 sm:p-6 xl:order-1">
+        <div className="order-2 border border-border bg-card p-5 sm:p-6 xl:order-1">
           <div className="flex items-start justify-between gap-4">
             <div>
               <Badge tone={completed ? "blue" : "dark"}>
-                {loading ? "Generating meeting" : completed ? "Meeting complete" : `Discussing ${currentTopic}`}
+                {loading ? "Generating" : completed ? "Introduction complete" : `Discussing ${currentTopic}`}
               </Badge>
-              <h1 className="mt-5 text-4xl font-semibold">
-                AI representatives meeting
+              <h1 className="mt-5 font-display text-4xl font-light tracking-tightish">
+                Representatives in conversation
               </h1>
               <p className="mt-4 text-sm leading-6 text-muted-foreground">
                 {proxyAName} AI and {proxyBName} AI are having a structured,
@@ -219,7 +223,7 @@ export function MeetingRoom({ meetingId }: { meetingId: string }) {
                 long-term goals.
               </p>
               {error && (
-                <p className="mt-4 max-w-xl border-l border-blue-600 pl-3 text-sm leading-6 text-muted-foreground">
+                <p className="mt-4 max-w-xl border-l border-claret pl-3 text-sm leading-6 text-muted-foreground">
                   {error}
                 </p>
               )}
@@ -227,27 +231,27 @@ export function MeetingRoom({ meetingId }: { meetingId: string }) {
           </div>
 
           <div className="relative mt-8 flex min-h-[260px] flex-col items-center justify-center gap-8 overflow-hidden border-y border-border py-8 sm:mt-10 sm:min-h-[360px] sm:flex-row sm:gap-0 sm:py-0">
-            <div className="absolute hidden h-px w-[62%] bg-blue-600/30 sm:block" />
-            <div className="absolute h-[62%] w-px bg-blue-600/30 sm:hidden" />
+            <div className="absolute hidden h-px w-[62%] bg-border sm:block" />
+            <div className="absolute h-[62%] w-px bg-border sm:hidden" />
             <motion.div
-              className="absolute hidden h-px w-[62%] origin-left bg-blue-600 sm:block"
+              className="absolute hidden h-px w-[62%] origin-left bg-claret sm:block"
               animate={{ scaleX: loading ? [0.12, 0.5, 0.12] : [0.16, 1, 0.16], opacity: [0.24, 1, 0.24] }}
               transition={{ duration: loading ? 1.6 : 2.6, repeat: Infinity, ease: "easeInOut" }}
             />
             <motion.div
-              className="absolute h-[62%] w-px origin-top bg-blue-600 sm:hidden"
+              className="absolute h-[62%] w-px origin-top bg-claret sm:hidden"
               animate={{ scaleY: loading ? [0.12, 0.5, 0.12] : [0.16, 1, 0.16], opacity: [0.24, 1, 0.24] }}
               transition={{ duration: loading ? 1.6 : 2.6, repeat: Infinity, ease: "easeInOut" }}
             />
             <motion.div
-              className="z-10 flex h-28 w-28 items-center justify-center rounded-full border border-black bg-white text-center text-sm font-semibold shadow-quiet-xl sm:h-36 sm:w-36"
+              className="z-10 flex h-28 w-28 items-center justify-center rounded-full border border-foreground bg-card text-center font-display text-sm sm:h-36 sm:w-36"
               animate={{ x: [-8, 0, -8], y: [0, -4, 0] }}
               transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
             >
               {proxyAName} AI
             </motion.div>
             <motion.div
-              className="z-10 flex h-28 w-28 items-center justify-center rounded-full border border-blue-600 bg-white text-center text-sm font-semibold text-blue-700 shadow-quiet-xl sm:ml-24 sm:h-36 sm:w-36"
+              className="z-10 flex h-28 w-28 items-center justify-center rounded-full border border-claret bg-card text-center font-display text-sm text-claret sm:ml-24 sm:h-36 sm:w-36"
               animate={{ x: [8, 0, 8], y: [0, 4, 0] }}
               transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
             >
@@ -265,9 +269,9 @@ export function MeetingRoom({ meetingId }: { meetingId: string }) {
                     <span
                       className={
                         status === "complete"
-                          ? "h-2 w-2 rounded-full bg-blue-600"
+                          ? "h-2 w-2 rounded-full bg-claret"
                           : status === "active"
-                            ? "h-2 w-2 rounded-full bg-black"
+                            ? "h-2 w-2 rounded-full bg-foreground"
                             : "h-2 w-2 rounded-full bg-muted"
                       }
                     />
@@ -282,10 +286,10 @@ export function MeetingRoom({ meetingId }: { meetingId: string }) {
           </div>
         </div>
 
-        <aside className="order-1 border border-border bg-white p-5 sm:p-6 xl:order-2">
+        <aside className="order-1 border border-border bg-card p-5 sm:p-6 xl:order-2">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold">Live transcript</h2>
+              <h2 className="font-display text-lg font-light">Live transcript</h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 No black box. Every insight can be traced back to the meeting.
               </p>
@@ -323,8 +327,8 @@ export function MeetingRoom({ meetingId }: { meetingId: string }) {
                     <span
                       className={
                         line.speakerName.startsWith(proxyAName)
-                          ? "h-2 w-2 rounded-full bg-blue-600"
-                          : "h-2 w-2 rounded-full bg-violet-600"
+                          ? "h-2 w-2 rounded-full bg-claret"
+                          : "h-2 w-2 rounded-full bg-foreground"
                       }
                     />
                     <p className="text-sm font-medium">{line.speakerName}</p>

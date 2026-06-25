@@ -18,15 +18,11 @@ const tabs = ["Profile", "Personality", "Imports", "Activity"] as const;
 
 function ProxyBurst() {
   return (
-    <div className="relative h-24 w-24 rounded-full border border-blue-500/20 bg-black">
-      <span className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600 shadow-[0_0_24px_rgba(37,99,235,0.9)]" />
-      {Array.from({ length: 6 }).map((_, index) => (
-        <span
-          key={index}
-          className="absolute rounded-full border border-blue-500/25"
-          style={{ inset: `${8 + index * 7}px` }}
-        />
-      ))}
+    <div className="flex h-24 w-24 items-center justify-center rounded-full border border-border bg-ink">
+      <svg width="44" height="30" viewBox="0 0 26 18" fill="none" aria-hidden="true">
+        <circle cx="9" cy="9" r="7" stroke="hsl(40 33% 94%)" strokeWidth="1" opacity="0.9" />
+        <circle cx="17" cy="9" r="7" stroke="hsl(350 30% 55%)" strokeWidth="1" opacity="0.7" />
+      </svg>
     </div>
   );
 }
@@ -34,7 +30,7 @@ function ProxyBurst() {
 function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h3 className="text-sm font-semibold">{title}</h3>
+      <h3 className="eyebrow text-muted-foreground">{title}</h3>
       <div className="mt-3">{children}</div>
     </section>
   );
@@ -46,7 +42,7 @@ function TextList({ items }: { items: string[] }) {
       {items.map((item) => (
         <p
           key={item}
-          className="rounded-lg border border-border bg-[#fafafa] px-4 py-3 text-sm leading-6 text-muted-foreground"
+          className="border border-border bg-background px-4 py-3 text-sm leading-6 text-muted-foreground"
         >
           {item}
         </p>
@@ -103,19 +99,19 @@ export function ProxyProfilePanel({ profile }: { profile: GeneratedProxyProfile 
   }, []);
 
   return (
-    <section className="rounded-lg border border-border bg-white shadow-sm">
+    <section className="border border-border bg-card">
       <div className="border-b border-border p-6">
         <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-start">
           <div>
-            <h1 className="text-2xl font-semibold">My Shadow</h1>
+            <h1 className="font-display text-2xl font-light tracking-tightish">My Shadow</h1>
             <div className="mt-6 flex flex-wrap gap-2 text-sm text-muted-foreground">
               {tabs.map((tab) => (
                 <button
                   key={tab}
                   className={cn(
-                    "h-10 rounded-md border border-transparent px-3 transition-colors hover:border-border hover:bg-muted hover:text-foreground",
+                    "h-9 rounded-full border border-transparent px-4 text-sm transition-colors hover:border-border hover:text-foreground",
                     activeTab === tab &&
-                      "border-blue-200 bg-blue-50 text-blue-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                      "border-foreground bg-foreground text-background hover:border-foreground hover:text-background"
                   )}
                   onClick={() => setActiveTab(tab)}
                   type="button"
@@ -136,7 +132,7 @@ export function ProxyProfilePanel({ profile }: { profile: GeneratedProxyProfile 
 
       <div className="p-6">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold">Shadow Profile</h2>
+          <h2 className="font-display text-lg font-light">Shadow Profile</h2>
           <Button asChild variant="secondary" size="sm">
             <Link href="/create-shadow">
               <Edit3 className="h-4 w-4" />
@@ -145,13 +141,13 @@ export function ProxyProfilePanel({ profile }: { profile: GeneratedProxyProfile 
           </Button>
         </div>
 
-        <div className="mt-5 rounded-lg border border-black bg-black p-6 text-white">
+        <div className="mt-5 bg-ink p-6 text-paper">
           <div className="grid gap-6 md:grid-cols-[120px_1fr] md:items-center">
             <ProxyBurst />
             <div>
-              <p className="text-xl font-semibold">{profileName} AI</p>
-              <p className="mt-1 text-sm text-white/60">Digital Representative</p>
-              <p className="mt-4 max-w-xl text-sm leading-6 text-white/75">
+              <p className="font-display text-xl font-light">{profileName} AI</p>
+              <p className="mt-1 text-sm text-paper/60">Digital Representative</p>
+              <p className="mt-4 max-w-xl text-sm leading-6 text-paper/75">
                 {displayProfile.summary}
               </p>
             </div>
@@ -166,9 +162,9 @@ export function ProxyProfilePanel({ profile }: { profile: GeneratedProxyProfile 
                   {bioSignals.map(([label, value]) => (
                     <div
                       key={label}
-                      className="rounded-lg border border-border bg-[#fafafa] px-4 py-3"
+                      className="border border-border bg-background px-4 py-3"
                     >
-                      <p className="text-xs text-muted-foreground">{label}</p>
+                      <p className="eyebrow text-muted-foreground">{label}</p>
                       <p className="mt-1 text-sm font-medium">{value}</p>
                     </div>
                   ))}
@@ -236,9 +232,9 @@ export function ProxyProfilePanel({ profile }: { profile: GeneratedProxyProfile 
               ],
               ["Journal entries", "Optional", "Improve long-term retrieval"]
             ].map(([title, status, body]) => (
-              <section key={title} className="rounded-lg border border-border p-5">
-                <FileText className="h-5 w-5 text-blue-600" />
-                <h3 className="mt-4 font-semibold">{title}</h3>
+              <section key={title} className="border border-border p-5">
+                <FileText className="h-5 w-5 text-claret" />
+                <h3 className="mt-4 font-display text-base font-light">{title}</h3>
                 <Badge
                   tone={status !== "Optional" && status !== "Ready" ? "blue" : "neutral"}
                   className="mt-3"
@@ -261,8 +257,8 @@ export function ProxyProfilePanel({ profile }: { profile: GeneratedProxyProfile 
               "Compatibility report created",
               "Three first-date options generated"
             ].map((event) => (
-              <div key={event} className="flex items-center gap-3 rounded-lg border border-border p-4">
-                <Activity className="h-4 w-4 text-blue-600" />
+              <div key={event} className="flex items-center gap-3 border border-border p-4">
+                <Activity className="h-4 w-4 text-claret" />
                 <p className="text-sm text-muted-foreground">{event}</p>
               </div>
             ))}

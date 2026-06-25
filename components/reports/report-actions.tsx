@@ -509,7 +509,7 @@ export function ShareControls({ report }: { report: CompatibilityReportData }) {
               aria-label={`${color.label} share card`}
               className={
                 selectedColor.label === color.label
-                  ? "h-6 w-6 rounded-full border border-black ring-2 ring-blue-600 ring-offset-2"
+                  ? "h-6 w-6 rounded-full border border-foreground ring-2 ring-claret ring-offset-2 ring-offset-background"
                   : "h-6 w-6 rounded-full border border-border"
               }
               onClick={() => setSelectedColor(color)}
@@ -536,7 +536,7 @@ export function ShareControls({ report }: { report: CompatibilityReportData }) {
           </span>
           <textarea
             ref={shareTextRef}
-            className="min-h-24 w-full resize-none border border-border bg-white p-3 text-sm leading-6 text-foreground outline-none transition focus:border-blue-600"
+            className="min-h-24 w-full resize-none border border-border bg-card p-3 text-sm leading-6 text-foreground outline-none transition focus:border-foreground"
             readOnly
             value={shareText}
           />

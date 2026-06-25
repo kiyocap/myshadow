@@ -49,7 +49,7 @@ function RadarChart({ scores }: { scores: ScoreItem[] }) {
               })
               .join(" ")}
             fill="none"
-            stroke="#e5e7eb"
+            stroke="#dcd4c7"
             strokeWidth="1"
           />
         ))}
@@ -62,19 +62,19 @@ function RadarChart({ scores }: { scores: ScoreItem[] }) {
               y1={center}
               x2={center + Math.cos(angle) * radius}
               y2={center + Math.sin(angle) * radius}
-              stroke="#e5e7eb"
+              stroke="#dcd4c7"
               strokeWidth="1"
             />
           );
         })}
         <polygon
           points={polygon}
-          fill="rgba(37, 99, 235, 0.08)"
-          stroke="#2563eb"
+          fill="rgba(122, 44, 64, 0.10)"
+          stroke="#7a2c40"
           strokeWidth="2"
         />
         {points.map(([x, y], index) => (
-          <circle key={index} cx={x} cy={y} r="3" fill="#2563eb" />
+          <circle key={index} cx={x} cy={y} r="3" fill="#7a2c40" />
         ))}
       </svg>
       {scores.map(([label, score], index) => {
@@ -100,13 +100,13 @@ function RadarChart({ scores }: { scores: ScoreItem[] }) {
 
 function ReportList({ title, items }: { title: string; items: string[] }) {
   return (
-    <section className="rounded-lg border border-border bg-white p-6">
-      <h2 className="text-lg font-semibold">{title}</h2>
+    <section className="border border-border bg-card p-6">
+      <h2 className="font-display text-lg font-light">{title}</h2>
       <div className="mt-5 space-y-4">
         {items.map((item) => (
           <p
             key={item}
-            className="border-l border-blue-600 pl-3 text-sm leading-6 text-muted-foreground"
+            className="border-l border-claret pl-3 text-sm leading-6 text-muted-foreground"
           >
             {item}
           </p>
@@ -122,12 +122,12 @@ function FirstDateOptions({
   options: CompatibilityReportData["suggestedFirstDates"];
 }) {
   return (
-    <section className="rounded-lg border border-border bg-white p-6">
+    <section className="border border-border bg-card p-6">
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
         <div className="flex items-start gap-4">
-          <MessageCircle className="mt-1 h-5 w-5 text-blue-600" />
+          <MessageCircle className="mt-1 h-5 w-5 text-claret" />
           <div>
-            <h2 className="text-lg font-semibold">Suggested First Dates</h2>
+            <h2 className="font-display text-lg font-light">Suggested First Dates</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
               Three options selected around compatibility, interests, pace, and the
               most useful things to learn in person.
@@ -140,39 +140,37 @@ function FirstDateOptions({
         {options.map((option, index) => (
           <article
             key={option.title}
-            className="flex min-h-[420px] flex-col rounded-lg border border-border p-5"
+            className="flex min-h-[420px] flex-col border border-border p-5"
           >
             <Badge tone="blue" className="w-fit">
               Option {index + 1}
             </Badge>
-            <h3 className="mt-4 text-xl font-semibold leading-tight">{option.title}</h3>
+            <h3 className="mt-4 font-display text-xl font-light leading-tight">{option.title}</h3>
 
             <div className="mt-5 space-y-4 text-sm leading-6 text-muted-foreground">
               <div className="flex gap-3">
-                <MapPin className="mt-1 h-4 w-4 shrink-0 text-blue-600" />
+                <MapPin className="mt-1 h-4 w-4 shrink-0 text-claret" />
                 <p>{option.setting}</p>
               </div>
               <div className="flex gap-3">
-                <Sparkles className="mt-1 h-4 w-4 shrink-0 text-blue-600" />
+                <Sparkles className="mt-1 h-4 w-4 shrink-0 text-claret" />
                 <p>{option.bestFor}</p>
               </div>
               <p>{option.whyItFits}</p>
               <div className="flex gap-3">
-                <Eye className="mt-1 h-4 w-4 shrink-0 text-blue-600" />
+                <Eye className="mt-1 h-4 w-4 shrink-0 text-claret" />
                 <p>{option.whatToNotice}</p>
               </div>
               <p>{option.logistics}</p>
             </div>
 
             <div className="mt-auto pt-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                Bring up
-              </p>
+              <p className="eyebrow text-muted-foreground">Bring up</p>
               <div className="mt-3 space-y-2">
                 {option.conversationPrompts.map((prompt) => (
                   <p
                     key={prompt}
-                    className="rounded-md border border-border bg-muted px-3 py-2 text-sm leading-5"
+                    className="border border-border bg-muted px-3 py-2 text-sm leading-5"
                   >
                     {prompt}
                   </p>
@@ -200,10 +198,14 @@ export function ReportView({
     source === "openai" ? "AI-generated report" : reportId === "demo" ? "Preview report" : reportId;
 
   return (
-    <main className="min-h-screen bg-[#f8f8f8]">
-      <header className="flex h-16 items-center justify-between border-b border-border bg-white px-5 sm:px-8 print:hidden">
-        <Link href="/" className="text-sm font-semibold">
-          Shadow
+    <main className="min-h-screen bg-background">
+      <header className="flex h-16 items-center justify-between border-b border-border bg-card px-5 sm:px-8 print:hidden">
+        <Link href="/" className="flex items-center gap-2.5">
+          <svg width="22" height="15" viewBox="0 0 26 18" fill="none" aria-hidden="true">
+            <circle cx="9" cy="9" r="7.25" stroke="currentColor" strokeWidth="1.1" opacity="0.9" />
+            <circle cx="17" cy="9" r="7.25" stroke="currentColor" strokeWidth="1.1" opacity="0.55" />
+          </svg>
+          <span className="font-display text-base font-medium tracking-tightish">Shadow</span>
         </Link>
         <div className="flex items-center gap-2">
           <Badge tone="blue">{sourceLabel}</Badge>
@@ -212,13 +214,13 @@ export function ReportView({
       </header>
 
       <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8">
-        <div className="rounded-lg border border-border bg-white p-6 shadow-sm">
+        <div className="border border-border bg-card p-6">
           <div className="flex flex-col justify-between gap-4 border-b border-border pb-6 md:flex-row md:items-start">
             <div>
-              <p className="text-sm text-muted-foreground">Compatibility Report</p>
-              <h1 className="mt-2 text-2xl font-semibold">What Your AIs Learned</h1>
+              <p className="eyebrow text-muted-foreground">Compatibility Reading</p>
+              <h1 className="mt-3 font-display text-3xl font-light tracking-tightish">What Your Hearts Learned</h1>
               <Button asChild variant="secondary" size="sm" className="mt-4 print:hidden">
-                <Link href="/dashboard/meetings">Back to meetings</Link>
+                <Link href="/dashboard/meetings">Back to introductions</Link>
               </Button>
             </div>
             <DownloadPdfButton report={report} className="print:hidden" />
@@ -226,12 +228,12 @@ export function ReportView({
 
           <div className="grid gap-10 py-8 lg:grid-cols-[0.75fr_1.25fr] lg:items-center">
             <div>
-              <p className="text-sm text-muted-foreground">Overall Compatibility</p>
-              <p className="mt-4 text-7xl font-semibold">
+              <p className="eyebrow text-muted-foreground">Overall Compatibility</p>
+              <p className="mt-4 font-display text-7xl font-light tracking-tighter2">
                 {report.overallScore}%
               </p>
-              <p className="mt-4 font-semibold">Relationship Outlook</p>
-              <p className="mt-4 max-w-sm text-sm leading-6 text-muted-foreground">
+              <p className="mt-5 font-display text-lg font-light">Relationship Outlook</p>
+              <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
                 {report.relationshipOutlook}
               </p>
             </div>
@@ -255,8 +257,8 @@ export function ReportView({
           <FirstDateOptions options={report.suggestedFirstDates} />
         </div>
 
-        <section className="mt-6 rounded-lg border border-border bg-white p-6 print:hidden">
-          <h2 className="text-lg font-semibold">Share Your Results</h2>
+        <section className="mt-6 border border-border bg-card p-6 print:hidden">
+          <h2 className="font-display text-lg font-light">Share Your Results</h2>
           <p className="mt-1 text-sm text-muted-foreground">Create a share card</p>
           <div className="mt-6">
             <ShareControls report={report} />

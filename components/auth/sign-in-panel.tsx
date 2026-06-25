@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { Mail } from "lucide-react";
+import { ArrowRight, Mail } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,36 +20,30 @@ export function SignInPanel({ callbackUrl = "/dashboard" }: { callbackUrl?: stri
     setNotice(null);
     setError(null);
 
-    const response = await fetch("/api/auth/demo-email", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email, callbackUrl })
+    const result = await signIn("demo", {
+      email: email || "guest@shadow.to",
+      callbackUrl,
+      redirect: false
     });
-    const data = (await response.json().catch(() => null)) as {
-      callbackUrl?: string;
-      error?: string;
-    } | null;
 
-    if (!response.ok) {
+    if (result?.error) {
       setUsingDemoAccess(false);
-      setError(data?.error ?? "Demo access is not available.");
+      setError("Demo access is not available right now.");
       return;
     }
 
-    window.location.href = data?.callbackUrl ?? callbackUrl;
+    window.location.href = result?.url ?? callbackUrl;
   }
 
   return (
-    <div className="border border-border bg-white p-6 shadow-quiet-xl">
+    <div className="border border-border bg-card p-7">
       <div>
-        <h2 className="text-xl font-semibold">Continue to Shadow</h2>
+        <h2 className="font-display text-2xl font-light tracking-tightish">Continue to Shadow</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Enter your email and we&apos;ll send a secure sign-in link.
+          Enter your email for a secure sign-in link — or step straight in with demo access.
         </p>
-        <p className="mt-3 border-l border-blue-600 pl-3 text-xs leading-5 text-muted-foreground">
-          Dinner demo: if the magic link is blocked, use demo access below.
+        <p className="mt-4 border-l border-claret pl-3 text-xs leading-5 text-muted-foreground">
+          Just exploring? Use demo access below to step into the full experience instantly.
         </p>
       </div>
       <form
@@ -71,7 +65,7 @@ export function SignInPanel({ callbackUrl = "/dashboard" }: { callbackUrl?: stri
 
           if (result?.error) {
             setError(
-              "Magic link delivery is blocked until the Resend sender domain is verified."
+              "Magic link delivery is unavailable in demo mode. Use demo access below."
             );
             return;
           }
@@ -82,19 +76,19 @@ export function SignInPanel({ callbackUrl = "/dashboard" }: { callbackUrl?: stri
         }}
       >
         <div className="space-y-2">
-          <Label htmlFor="email">Magic link</Label>
+          <Label htmlFor="email">Email</Label>
           <Input
             id="email"
             type="email"
             placeholder="you@example.com"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            required
           />
         </div>
         <Button
           type="submit"
           className="w-full"
+          variant="secondary"
           disabled={sending || usingDemoAccess || !email}
         >
           <Mail className="h-4 w-4" />
@@ -102,16 +96,16 @@ export function SignInPanel({ callbackUrl = "/dashboard" }: { callbackUrl?: stri
         </Button>
         <Button
           type="button"
-          variant="secondary"
           className="w-full"
-          disabled={sending || usingDemoAccess || !email}
+          disabled={sending || usingDemoAccess}
           onClick={continueWithDemoAccess}
         >
-          {usingDemoAccess ? "Continuing..." : "Use demo access"}
+          {usingDemoAccess ? "Entering..." : "Use demo access"}
+          {!usingDemoAccess && <ArrowRight className="h-4 w-4" />}
         </Button>
       </form>
       {notice && (
-        <p className="mt-5 border-l border-blue-600 pl-3 text-sm leading-6 text-muted-foreground">
+        <p className="mt-5 border-l border-claret pl-3 text-sm leading-6 text-muted-foreground">
           {notice}
         </p>
       )}

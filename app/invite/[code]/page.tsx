@@ -42,12 +42,12 @@ export default async function InvitePage({
     <main className="min-h-screen bg-background px-5 py-8 text-foreground sm:px-8">
       <div className="mx-auto flex max-w-5xl items-center justify-between">
         <Link aria-label="Shadow home" href="/">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-6 w-6 items-center justify-center rounded-full border border-black/25">
-              <span className="h-2.5 w-2.5 rounded-full border border-black" />
-              <span className="absolute -right-0.5 bottom-1 h-1.5 w-1.5 rounded-full bg-black" />
-            </span>
-            <span className="text-sm font-semibold">Shadow</span>
+          <div className="flex items-center gap-2.5">
+            <svg width="24" height="16" viewBox="0 0 26 18" fill="none" aria-hidden="true">
+              <circle cx="9" cy="9" r="7.25" stroke="currentColor" strokeWidth="1.1" opacity="0.9" />
+              <circle cx="17" cy="9" r="7.25" stroke="currentColor" strokeWidth="1.1" opacity="0.55" />
+            </svg>
+            <span className="font-display text-lg font-medium tracking-tightish">Shadow</span>
           </div>
         </Link>
         {session?.user ? (
@@ -67,16 +67,17 @@ export default async function InvitePage({
       <section className="mx-auto mt-16 grid max-w-5xl gap-10 lg:min-h-[440px] lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
         <div className="lg:pr-4">
           <Badge tone="blue">Private invite</Badge>
-          <h1 className="mt-6 text-5xl font-semibold leading-[1.02] tracking-normal">
-            You&apos;ve been invited to let your AIs meet first.
+          <h1 className="mt-6 font-display text-[clamp(2.5rem,5vw,3.75rem)] font-light leading-[1.04] tracking-tighter2">
+            You&apos;ve been invited to let your minds meet first.
           </h1>
           <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground">
-            Create your Shadow, consent to the meeting, and both representatives
-            will compare values, lifestyle, communication, conflict, ambition,
-            and long-term goals before you decide what deserves attention.
+            Create your Shadow, consent to the introduction, and both
+            representatives will compare values, lifestyle, communication,
+            conflict, ambition, and long-term goals before you decide what
+            deserves attention.
           </p>
           {inviteError ? (
-            <p className="mt-8 border-l border-blue-600 pl-3 text-sm leading-6 text-muted-foreground">
+            <p className="mt-8 border-l border-claret pl-3 text-sm leading-6 text-muted-foreground">
               {inviteError}
             </p>
           ) : null}
@@ -114,10 +115,10 @@ export default async function InvitePage({
           ) : null}
         </div>
 
-        <div className="w-full max-w-[520px] justify-self-center border border-border bg-white p-6 shadow-quiet-xl lg:justify-self-end">
+        <div className="w-full max-w-[520px] justify-self-center border border-border bg-card p-6 lg:justify-self-end">
           <div className="flex items-center justify-between border-b border-border pb-5">
             <div>
-              <p className="text-sm font-semibold">Meeting invite</p>
+              <p className="font-display text-sm">Meeting invite</p>
               <p className="mt-1 font-mono text-xs text-muted-foreground">
                 {code}
               </p>
@@ -129,17 +130,17 @@ export default async function InvitePage({
           <div className="mt-6 grid gap-3">
             <div className="border border-border p-4">
               <div className="flex items-center gap-2">
-                <LockKeyhole className="h-4 w-4 text-blue-600" />
+                <LockKeyhole className="h-4 w-4 text-claret" />
                 <p className="text-sm font-medium">Consent only</p>
               </div>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                A meeting starts only after both people create or confirm their
-                representative.
+                An introduction starts only after both people create or confirm
+                their representative.
               </p>
             </div>
             <div className="border border-border p-4">
               <div className="flex items-center gap-2">
-                <MessageCircle className="h-4 w-4 text-blue-600" />
+                <MessageCircle className="h-4 w-4 text-claret" />
                 <p className="text-sm font-medium">Live transcript</p>
               </div>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">

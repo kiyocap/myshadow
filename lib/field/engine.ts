@@ -1562,8 +1562,8 @@ export function runStructuredShadowMeeting(
         speaker: a.userId,
         speakerLabel: labelA,
         intent: "CLAIM",
-        content: `${A} is based around ${a.homeArea ?? a.locationArea ?? "an unspecified area"}${
-          a.workArea ? `, working in ${a.workArea}` : ""
+        content: `For the practical bit, ${A} is around ${a.homeArea ?? a.locationArea ?? "an unspecified area"}${
+          a.workArea ? ` and is usually near ${a.workArea} for work` : ""
         }.`,
         evidenceType: "logistics",
         privacyLevel: "shareable",
@@ -1573,9 +1573,9 @@ export function runStructuredShadowMeeting(
         speaker: b.userId,
         speakerLabel: labelB,
         intent: "CLAIM",
-        content: `${B} is based around ${b.homeArea ?? b.locationArea ?? "an unspecified area"}${
-          b.workArea ? `, working in ${b.workArea}` : ""
-        }.`,
+        content: `${B} is around ${b.homeArea ?? b.locationArea ?? "an unspecified area"}${
+          b.workArea ? ` and works near ${b.workArea}` : ""
+        }, so this is workable if the first date is chosen carefully.`,
         evidenceType: "logistics",
         privacyLevel: "shareable",
         extractedFacts: []
@@ -1584,8 +1584,8 @@ export function runStructuredShadowMeeting(
         speaker: a.userId,
         speakerLabel: labelA,
         intent: "RESOLUTION",
-        content: `${suggestion.meetingZone ?? "A central spot"} works well — ${
-          suggestion.reasoning ?? "convenient for both"
+        content: `I'd put them near ${suggestion.meetingZone ?? "a central spot"}. ${
+          suggestion.reasoning ?? "It keeps the effort balanced for both of them."
         }`,
         evidenceType: "logistics",
         privacyLevel: "public",
@@ -1604,7 +1604,7 @@ export function runStructuredShadowMeeting(
         speaker: a.userId,
         speakerLabel: labelA,
         intent: "RESOLUTION",
-        content: "Synthesising everything into a recommendation for the humans.",
+        content: "I'm ready to hand this back to the humans. The question is not whether they overlap on paper, it is whether the pull survives a real conversation.",
         evidenceType: "inference",
         privacyLevel: "public",
         extractedFacts: []

@@ -33,15 +33,15 @@ export function CheckoutButton() {
   return (
     <div className="space-y-3">
       <Button
-        className="bg-white text-black hover:bg-white/90"
+        className="bg-paper text-ink hover:bg-paper/90"
         onClick={startCheckout}
         type="button"
         disabled={loading}
       >
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-        {loading ? "Opening checkout" : "Upgrade to Premium"}
+        {loading ? "Opening checkout" : "Become a patron"}
       </Button>
-      {message && <p className="max-w-sm text-xs leading-5 text-white/60">{message}</p>}
+      {message && <p className="max-w-sm text-xs leading-5 text-paper/60">{message}</p>}
     </div>
   );
 }

@@ -11,8 +11,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { demoProxyProfile, type GeneratedProxyProfile } from "@/lib/ai";
 import {
+  PhotoUploader,
+  SocialConnect,
+  VoiceNoteRecorder,
+  type Socials
+} from "@/components/proxy/profile-extras";
+import {
   LEGACY_LOCAL_PROXY_PROFILE_KEY,
   LOCAL_PROXY_PROFILE_KEY,
+  LOCAL_USER_LOCATION_KEY,
   type LocalProxyProfile
 } from "@/lib/proxy-storage";
 
@@ -51,7 +58,7 @@ const myersBriggsTypes = [
 ];
 
 const selectClassName =
-  "flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+  "flex h-11 w-full rounded-none border border-input bg-card px-3.5 py-2 text-sm text-foreground transition-colors focus-visible:border-foreground focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50";
 
 const guidedQuestions = [
   {
@@ -164,9 +171,13 @@ export function CreateProxyFlow() {
   const [name, setName] = useState("Hewie");
   const [age, setAge] = useState("31");
   const [occupation, setOccupation] = useState("Founder / builder");
-  const [location, setLocation] = useState("London");
+  const [homeLocation, setHomeLocation] = useState("Battersea");
+  const [workLocation, setWorkLocation] = useState("City of London");
   const [starSign, setStarSign] = useState("");
   const [myersBriggs, setMyersBriggs] = useState("");
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [voiceNote, setVoiceNote] = useState<string | null>(null);
+  const [socials, setSocials] = useState<Socials>({});
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string[]>>({});
   const [llmImport, setLlmImport] = useState("");
   const [copied, setCopied] = useState(false);
@@ -247,8 +258,8 @@ export function CreateProxyFlow() {
       return "Add your occupation before continuing.";
     }
 
-    if (!location.trim()) {
-      return "Add your location before continuing.";
+    if (!homeLocation.trim()) {
+      return "Add where you live before continuing.";
     }
 
     if (!starSign) {
@@ -324,7 +335,7 @@ export function CreateProxyFlow() {
           name: name || "Your",
           age: Number(age) || undefined,
           occupation,
-          location,
+          location: [homeLocation, workLocation].filter(Boolean).join(" · "),
           starSign: starSign || undefined,
           myersBriggs: myersBriggs || undefined,
           motivation: answerSignal(
@@ -405,9 +416,14 @@ export function CreateProxyFlow() {
       name: name || "Your",
       age: Number(age) || undefined,
       occupation,
-      location,
+      location: homeLocation,
+      homeLocation,
+      workLocation,
       starSign: starSign || undefined,
       myersBriggs: myersBriggs || undefined,
+      photos,
+      voiceNote,
+      socials,
       profile,
       guidedAnswers: selectedAnswers,
       selectedSignalCount,
@@ -423,6 +439,11 @@ export function CreateProxyFlow() {
       JSON.stringify(localProfile)
     );
     window.localStorage.removeItem(LEGACY_LOCAL_PROXY_PROFILE_KEY);
+    // Persist home/work so Discover can suggest dates without re-asking.
+    window.localStorage.setItem(
+      LOCAL_USER_LOCATION_KEY,
+      JSON.stringify({ home: homeLocation, work: workLocation })
+    );
   }
 
   async function saveProxyToAccount(localProfile: LocalProxyProfile) {
@@ -487,9 +508,9 @@ export function CreateProxyFlow() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr]">
-      <aside className="border border-border bg-white p-6 lg:sticky lg:top-8 lg:h-fit">
+      <aside className="border border-border bg-card p-6 lg:sticky lg:top-8 lg:h-fit">
         <Badge tone="blue">Create Shadow</Badge>
-        <h1 className="mt-5 text-4xl font-semibold">Build your representative</h1>
+        <h1 className="mt-5 font-display text-4xl font-light tracking-tightish">Build your representative</h1>
         <p className="mt-4 text-sm leading-6 text-muted-foreground">
           Shadow works best when it has honest signal. Start with the essentials,
           choose the patterns that fit, then add an LLM import when you want more
@@ -507,7 +528,7 @@ export function CreateProxyFlow() {
                 <span
                   className={
                     step === index
-                      ? "flex h-6 w-6 items-center justify-center rounded-full bg-black text-xs text-white"
+                      ? "flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-xs text-background"
                       : "flex h-6 w-6 items-center justify-center rounded-full border border-border text-xs"
                   }
                 >
@@ -522,16 +543,16 @@ export function CreateProxyFlow() {
         </div>
       </aside>
 
-      <section className="border border-border bg-white p-6">
+      <section className="border border-border bg-card p-6">
         {formError && (
-          <div className="mb-6 border border-blue-200 bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-900">
+          <div className="mb-6 border-l-2 border-claret bg-accent px-4 py-3 text-sm leading-6 text-foreground">
             {formError}
           </div>
         )}
 
         {step === 0 && (
           <div>
-            <h2 className="text-2xl font-semibold">Identity</h2>
+            <h2 className="font-display text-2xl font-light tracking-tightish">Identity</h2>
             <div className="mt-8 grid gap-5 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
@@ -574,14 +595,30 @@ export function CreateProxyFlow() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="home-location">Where you live</Label>
                 <Input
-                  id="location"
+                  id="home-location"
                   required
-                  value={location}
+                  placeholder="e.g. Battersea"
+                  value={homeLocation}
                   onChange={(event) => {
                     setFormError(null);
-                    setLocation(event.target.value);
+                    setHomeLocation(event.target.value);
+                    setProfileStatus("idle");
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="work-location">
+                  Where you work <span className="text-muted-foreground">· optional</span>
+                </Label>
+                <Input
+                  id="work-location"
+                  placeholder="e.g. City of London"
+                  value={workLocation}
+                  onChange={(event) => {
+                    setFormError(null);
+                    setWorkLocation(event.target.value);
                     setProfileStatus("idle");
                   }}
                 />
@@ -630,17 +667,23 @@ export function CreateProxyFlow() {
                 </select>
               </div>
             </div>
+
+            <div className="mt-8 space-y-5">
+              <PhotoUploader photos={photos} onChange={setPhotos} />
+              <VoiceNoteRecorder value={voiceNote} onChange={setVoiceNote} />
+              <SocialConnect value={socials} onChange={setSocials} />
+            </div>
           </div>
         )}
 
         {step === 1 && (
           <div>
-            <h2 className="text-2xl font-semibold">Guided answers</h2>
+            <h2 className="font-display text-2xl font-light tracking-tightish">Guided answers</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Select what feels true. You can move quickly without writing a
               personal essay.
             </p>
-            <div className="mt-5 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+            <div className="mt-5 border-l-2 border-claret bg-accent px-4 py-3 text-sm text-foreground">
               {selectedSignalCount} signals selected. More signal gives the
               representative sharper instincts.
             </div>
@@ -649,7 +692,7 @@ export function CreateProxyFlow() {
                 <div key={question.id} className="border-b border-border pb-7 last:border-b-0 last:pb-0">
                   <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                     <div>
-                      <h3 className="font-semibold">{question.label}</h3>
+                      <h3 className="font-display text-base font-light">{question.label}</h3>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {question.helper}
                       </p>
@@ -667,8 +710,8 @@ export function CreateProxyFlow() {
                           key={option}
                           className={
                             selected
-                              ? "rounded-full border border-black bg-black px-4 py-2 text-sm text-white transition-colors"
-                              : "rounded-full border border-border bg-white px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
+                              ? "rounded-full border border-foreground bg-foreground px-4 py-2 text-sm text-background transition-colors"
+                              : "rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-claret/40 hover:text-foreground"
                           }
                           onClick={() => toggleAnswer(question.id, option)}
                           type="button"
@@ -686,20 +729,18 @@ export function CreateProxyFlow() {
 
         {step === 2 && (
           <div>
-            <h2 className="text-2xl font-semibold">LLM Import</h2>
+            <h2 className="font-display text-2xl font-light tracking-tightish">LLM Import</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Ask your AI to summarize what it knows about you, then paste the
               response here. It gives Shadow a richer starting point without
               needing file uploads.
             </p>
             <div className="mt-8 space-y-5">
-              <div className="border border-border bg-[#fafafa] p-5">
+              <div className="border border-border bg-background p-5">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-blue-600">
-                      Step 1
-                    </p>
-                    <p className="mt-2 text-base font-semibold">Prompt for your AI</p>
+                    <p className="eyebrow text-claret">Step 1</p>
+                    <p className="mt-2 font-display text-base font-light">Prompt for your AI</p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       Use this with ChatGPT, Claude, Gemini, or another LLM.
                     </p>
@@ -709,7 +750,7 @@ export function CreateProxyFlow() {
                     {copied ? "Copied" : "Copy"}
                   </Button>
                 </div>
-                <pre className="mt-5 max-h-80 overflow-auto rounded-md border border-border bg-white p-5 text-sm leading-7 text-muted-foreground whitespace-pre-wrap">
+                <pre className="mt-5 max-h-80 overflow-auto border border-border bg-card p-5 text-sm leading-7 text-muted-foreground whitespace-pre-wrap">
                   {llmPrompt}
                 </pre>
               </div>
@@ -717,9 +758,7 @@ export function CreateProxyFlow() {
               <div className="border border-border p-5">
                 <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-blue-600">
-                      Step 2
-                    </p>
+                    <p className="eyebrow text-claret">Step 2</p>
                     <Label className="mt-2 block text-base" htmlFor="llm-import">
                       Paste your AI&apos;s response
                     </Label>
@@ -752,10 +791,10 @@ export function CreateProxyFlow() {
         {step === 3 && (
           <div>
             <div className="flex items-center gap-3">
-              <Sparkles className="h-5 w-5 text-blue-600" />
-              <h2 className="text-2xl font-semibold">AI personality engine</h2>
+              <Sparkles className="h-5 w-5 text-claret" />
+              <h2 className="font-display text-2xl font-light tracking-tightish">AI personality engine</h2>
             </div>
-            <p className="mt-4 text-lg leading-8">{profile.summary}</p>
+            <p className="mt-4 font-display text-lg font-light leading-8">{profile.summary}</p>
             <div className="mt-5 flex flex-wrap items-center gap-3">
               <Badge tone={profileStatus === "ready" ? "blue" : "neutral"}>
                 {profileStatus === "generating"
@@ -770,7 +809,7 @@ export function CreateProxyFlow() {
               </p>
             </div>
             {profileError && (
-              <p className="mt-4 border-l border-blue-600 pl-3 text-sm leading-6 text-muted-foreground">
+              <p className="mt-4 border-l border-claret pl-3 text-sm leading-6 text-muted-foreground">
                 {profileError}
               </p>
             )}
@@ -782,7 +821,7 @@ export function CreateProxyFlow() {
                 ["Weaknesses", profile.weaknesses]
               ].map(([title, items]) => (
                 <div key={title as string} className="border border-border p-5">
-                  <p className="text-sm font-semibold">{title as string}</p>
+                  <p className="eyebrow text-muted-foreground">{title as string}</p>
                   <div className="mt-4 space-y-2">
                     {(items as string[]).map((item) => (
                       <p key={item} className="text-sm leading-6 text-muted-foreground">

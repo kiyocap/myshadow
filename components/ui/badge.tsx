@@ -10,9 +10,9 @@ export function Badge({ children, className, tone = "neutral" }: BadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex h-7 items-center rounded-full border px-3 text-xs font-medium",
-        tone === "neutral" && "border-border bg-background text-muted-foreground",
-        tone === "blue" && "border-blue-200 bg-blue-50 text-blue-700",
+        "inline-flex h-7 items-center rounded-full border px-3 text-[11px] font-medium uppercase tracking-[0.16em]",
+        tone === "neutral" && "border-border bg-transparent text-muted-foreground",
+        tone === "blue" && "border-claret/30 bg-transparent text-claret",
         tone === "dark" && "border-foreground bg-foreground text-background",
         className
       )}

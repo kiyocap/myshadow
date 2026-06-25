@@ -62,6 +62,9 @@ export function LegalShell({
         <div className="mx-auto flex max-w-[820px] flex-col gap-3 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <span>© {new Date().getFullYear()} Shadow. All rights reserved.</span>
           <div className="flex items-center gap-6">
+            <Link href="/support" className="transition hover:text-foreground">
+              Support
+            </Link>
             <Link href="/terms" className="transition hover:text-foreground">
               Terms of Use
             </Link>

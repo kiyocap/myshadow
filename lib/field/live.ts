@@ -56,13 +56,16 @@ import {
 
 /**
  * Per-stage turn cap. Each live turn is one sequential LLM call (~2–4s).
- * We emit an instant opener per stage (no LLM), then one LLM reply — so two
- * conversational stages ≈ 2 model calls (~8–12s total on the server).
+ * We emit an instant opener, then let the agents answer and push back enough
+ * that the transcript feels like a real meeting rather than paired summaries.
  */
-const MAX_LIVE_TURNS_PER_STAGE = 2;
+const MAX_LIVE_TURNS_PER_STAGE = 5;
+
+/** Never let a conversational stage end after a single answer. */
+const MIN_LIVE_TURNS_PER_STAGE = 3;
 
 /** Hard stop for a whole meeting. */
-const MAX_LIVE_TURNS_TOTAL = 5;
+const MAX_LIVE_TURNS_TOTAL = 10;
 
 /** Skip the extra verdict LLM pass; the deterministic engine grades the real transcript. */
 const SKIP_LIVE_VERDICT_LLM =
@@ -135,7 +138,11 @@ const verdictSchema = z.object({
 type Verdict = z.infer<typeof verdictSchema>;
 
 function nameOf(p: ShadowProfile): string {
-  return p.displayName || p.userId;
+  return (p.displayName || p.userId).trim();
+}
+
+function randomOpening(options: string[]): string {
+  return options[Math.floor(Math.random() * options.length)] ?? options[0];
 }
 
 function defaultStages(
@@ -171,6 +178,48 @@ function transcriptForPrompt(transcript: ExchangeMessage[]): Array<{ speaker: st
   return transcript.map((m) => ({ speaker: m.speakerLabel, line: m.content }));
 }
 
+function asksQuestion(text: string): boolean {
+  return /\?\s*$/.test(text.trim()) || /\?/.test(text);
+}
+
+function leavesQuestionOpen(message: ExchangeMessage | undefined): boolean {
+  if (!message) return false;
+  return message.intent === "QUESTION" || asksQuestion(message.content);
+}
+
+function fallbackAnswerToOpenQuestion(
+  stage: MeetingStage,
+  self: ShadowProfile,
+  other: ShadowProfile
+): TurnResult {
+  const selfName = nameOf(self);
+  const otherName = nameOf(other);
+  const conflict = self.conflictStyle?.trim();
+  const needs = self.emotionalNeeds?.slice(0, 2).join(" and ");
+  const communication = self.communicationStyle?.trim();
+
+  let content: string;
+  if (stage === "friction_test") {
+    content = `${selfName} would probably handle that best if ${otherName} stayed specific and warm. ${
+      conflict ? `${selfName}'s pattern is ${conflict.toLowerCase()}, so the repair needs to feel direct without becoming a verdict.` : `The repair needs to feel direct without becoming a verdict.`
+    }`;
+  } else if (stage === "surface") {
+    content = `${selfName} would likely respond to ${otherName} through ${
+      communication?.toLowerCase() ?? "the way the conversation feels"
+    }. ${needs ? `The key need is ${needs.toLowerCase()}, so I would watch whether ${otherName} creates that feeling.` : `I would watch whether ${otherName} creates steadiness rather than just interest.`}`;
+  } else {
+    content = `${selfName}'s answer is that this still looks workable if ${otherName} makes the next step concrete and mutual. I would keep the practical read tied to how safe the interaction feels.`;
+  }
+
+  return {
+    content,
+    intent: "RESOLUTION",
+    learned: [],
+    stillWantToProbe: [],
+    stageGoalMet: true
+  };
+}
+
 /** Profile-aware opener — streams immediately, no LLM round-trip. */
 function instantOpener(
   a: ShadowProfile,
@@ -185,9 +234,21 @@ function instantOpener(
   const tone = self.communicationStyle?.split(",")[0]?.trim().toLowerCase() ?? "direct";
   let content: string;
   if (stage === "surface") {
-    content = `${selfName} tends to be ${tone} and wants to know if there's real pull with ${otherName}, not just overlapping interests.`;
+    content = randomOpening([
+      `Before I score this, I want the felt part. When ${otherName} meets someone ${tone} like ${selfName}, do they soften, sharpen, or shut down?`,
+      `I'll skip the hobby-matching bit. What I need to know is whether ${otherName} would make ${selfName} feel more grounded or more on edge.`,
+      `The surface looks plausible, but I care less about overlap. How does ${otherName} usually respond to someone with ${selfName}'s pace?`,
+      `${selfName} can be ${tone}, so I'm checking the chemistry underneath. Would ${otherName} steady that, meet it, or quietly resist it?`,
+      `Let's not pretend this is about shared interests. What would being around ${otherName} bring out in ${selfName}?`
+    ]);
   } else if (stage === "friction_test") {
-    content = `${selfName} is curious how ${otherName} handles it when something lands wrong, and whether repair feels natural between them.`;
+    content = randomOpening([
+      `Let's test the first awkward moment. If ${selfName} moves too fast or misreads the room, what does ${otherName} do next?`,
+      `The pretty version is easy. I'm more interested in repair: when tension shows up, does ${otherName} name it, soften it, or disappear?`,
+      `I want to know the failure mode. Where would ${selfName}'s pace rub against ${otherName}, and how would they recover?`,
+      `Let's put a little pressure on it. If ${selfName} comes in too direct, can ${otherName} meet that without feeling crowded?`,
+      `Before I hand this back as promising, I need the repair read. What happens when ${selfName} and ${otherName} miss each other?`
+    ]);
   } else {
     content = `${selfName} is checking whether this could actually work day to day with ${otherName}.`;
   }
@@ -206,7 +267,8 @@ function instantOpener(
 const TURN_RULES = [
   "You are a Shadow (AI representative) in a private agent-to-agent compatibility meeting.",
   "Speak for YOUR person only. Questions go to the OTHER Shadow about THEIR person.",
-  "React to the last line. One spoken line only. Never use em dashes or en dashes.",
+  "React to the last line before adding your own evidence. Sound like you are in the room with the other agent: agree, qualify, challenge, or ask a follow-up.",
+  "One spoken line only, 1-2 sentences. Avoid report language like 'X values Y' unless you are answering a direct question. Never use em dashes or en dashes.",
   "Return JSON: { \"content\": string, \"intent\": \"CLAIM\"|\"QUESTION\"|\"EVIDENCE\"|\"CONCERN\"|\"RESOLUTION\"|\"FOLLOW_UP\", \"learned\": string[], \"stillWantToProbe\": string[], \"stageGoalMet\": boolean }."
 ].join(" ");
 
@@ -219,8 +281,9 @@ async function generateTurn(args: {
   speaker: "A" | "B";
   transcript: ExchangeMessage[];
   tokens: string[];
+  openQuestion?: string;
 }): Promise<TurnResult | null> {
-  const { client, a, b, stage, speaker, transcript, tokens } = args;
+  const { client, a, b, stage, speaker, transcript, tokens, openQuestion } = args;
   const self = speaker === "A" ? a : b;
   const other = speaker === "A" ? b : a;
   const agenda = generateMeetingAgenda(a, b, stage);
@@ -238,6 +301,7 @@ async function generateTurn(args: {
           role: "system",
           content: [
             TURN_RULES,
+            "Continuity is mandatory: if the previous turn asked a question, answer that question directly before any new probe or topic shift. Never set stageGoalMet true on a turn that ends with a question.",
             `You are ${nameOf(self)}'s Shadow. The other Shadow represents ${nameOf(other)}.`,
             `Stage: ${STAGE_LABELS[stage]}. Goal: ${STAGE_PURPOSE[stage]}`
           ].join(" ")
@@ -251,9 +315,12 @@ async function generateTurn(args: {
             // Things THIS Shadow wants to learn about the OTHER person.
             iStillWantToLearnAboutThem: myOpenQuestions,
             transcriptSoFar: transcriptForPrompt(transcript),
-            instruction: transcript.length
-              ? "React to the last line and continue the conversation with your single next line."
-              : "Open the conversation naturally with your single first line."
+            openQuestionToAnswer: openQuestion,
+            instruction: openQuestion
+              ? "The last line asked you this question. Answer it directly in this same stage. Do not introduce logistics, handoff, or a new topic yet. Do not end with another question."
+              : transcript.length
+                ? "React to the last line and continue the conversation with your single next line. Do not summarize both people. Make it feel like the next move in an active discussion."
+                : "Open the conversation naturally with your single first line."
           })
         }
       ]
@@ -382,21 +449,56 @@ export async function* streamLiveMeeting(
     allTurns.push(opener);
     yield { type: "turn", message: opener };
 
-    // One live reply from the other side completes the exchange.
-    const turn = await generateTurn({
-      client: liveClient,
-      a,
-      b,
-      stage,
-      speaker: "B",
-      transcript: allTurns,
-      tokens
-    });
-    if (turn) {
-      const message = toExchangeMessage(turn, stage, a, b, "B");
+    let turnIndex = 1;
+    while (
+      turnIndex < MAX_LIVE_TURNS_PER_STAGE ||
+      leavesQuestionOpen(stageTurns.at(-1))
+    ) {
+      const openQuestion = leavesQuestionOpen(stageTurns.at(-1))
+        ? stageTurns.at(-1)?.content
+        : undefined;
+      if (allTurns.length >= MAX_LIVE_TURNS_TOTAL && !openQuestion) break;
+      if (stageTurns.length >= MAX_LIVE_TURNS_PER_STAGE + 1) break;
+      const speaker: "A" | "B" = turnIndex % 2 === 0 ? "A" : "B";
+      const turn = await generateTurn({
+        client: liveClient,
+        a,
+        b,
+        stage,
+        speaker,
+        transcript: allTurns,
+        tokens,
+        openQuestion
+      }) ?? (openQuestion
+        ? fallbackAnswerToOpenQuestion(stage, speaker === "A" ? a : b, speaker === "A" ? b : a)
+        : null);
+      if (!turn) break;
+
+      if (asksQuestion(turn.content)) {
+        turn.stageGoalMet = false;
+      }
+      if (openQuestion && turn.intent === "QUESTION" && !asksQuestion(turn.content)) {
+        turn.intent = "RESOLUTION";
+      }
+      if (openQuestion && asksQuestion(turn.content)) {
+        // When closing a direct question, do not let the answer become a fresh
+        // hanging question just before the next stage.
+        turn.content = turn.content.replace(/\?\s*$/, ".");
+        turn.intent = turn.intent === "QUESTION" ? "RESOLUTION" : turn.intent;
+      }
+
+      const message = toExchangeMessage(turn, stage, a, b, speaker);
       stageTurns.push(message);
       allTurns.push(message);
       yield { type: "turn", message };
+
+      if (
+        turn.stageGoalMet &&
+        stageTurns.length >= MIN_LIVE_TURNS_PER_STAGE &&
+        !leavesQuestionOpen(message)
+      ) break;
+
+      turnIndex += 1;
     }
   }
 

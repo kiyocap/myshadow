@@ -34,9 +34,9 @@ export default function PrivacyPage() {
           matches, we send your <strong className="font-medium text-foreground">name</strong>, a{" "}
           <strong className="font-medium text-foreground">coarse (approximate) location</strong>,
           and the <strong className="font-medium text-foreground">profile and personality text</strong>{" "}
-          you write to our servers. Your photos, your email address, and your chat messages stay on
-          your device. We do not track you across other companies&rsquo; apps or websites, and we do
-          not sell your personal information.
+          you write to our servers. If you and another person mutually match, messages you send in
+          chat are processed by our servers so they can be delivered to that person. We do not track
+          you across other companies&rsquo; apps or websites, and we do not sell your personal information.
         </p>
       </LegalSection>
 
@@ -60,6 +60,10 @@ export default function PrivacyPage() {
               <strong className="font-medium text-foreground">Profile and personality text.</strong>{" "}
               The words you write about your values, interests, and the way you connect. This is the
               raw material your representative is built from.
+            </>,
+            <>
+              <strong className="font-medium text-foreground">Chat messages.</strong> Messages you
+              send after a mutual match, so we can deliver and sync that conversation.
             </>
           ]}
         />
@@ -76,10 +80,6 @@ export default function PrivacyPage() {
             <>
               <strong className="font-medium text-foreground">Your email address</strong>, if you
               choose to provide one.
-            </>,
-            <>
-              <strong className="font-medium text-foreground">Chat messages</strong> you exchange
-              with a match after a mutual connection.
             </>,
             <>
               <strong className="font-medium text-foreground">App preferences and settings</strong>,
@@ -169,8 +169,8 @@ export default function PrivacyPage() {
         <p>
           We keep the information sent to our servers only for as long as needed to provide the
           service to you, and to meet our legal, accounting, or reporting obligations. Information
-          that lives on your device (photos, email, chat messages, and settings) remains until you
-          delete it or remove the app.
+          that lives only on your device (photos, email, and settings) remains until you delete it
+          or remove the app.
         </p>
       </LegalSection>
 
@@ -192,9 +192,9 @@ export default function PrivacyPage() {
         <p>
           We use reasonable technical and organizational measures designed to protect your
           information. No method of transmission or storage is completely secure, however, and we
-          cannot guarantee absolute security. Keeping much of your most sensitive content
-          (photos and chat messages) on your device, rather than on our servers, is part of how we
-          limit risk.
+          cannot guarantee absolute security. Keeping photos on your device, rather than on our
+          servers, is part of how we limit risk; chat messages are sent to our servers only so
+          matched conversations can be delivered and synced.
         </p>
       </LegalSection>
 

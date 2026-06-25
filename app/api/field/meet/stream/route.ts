@@ -11,6 +11,8 @@ import type { LocalProxyProfile } from "@/lib/proxy-storage";
 // A live meeting fires many sequential turn calls plus a verdict pass, so allow
 // more headroom than the one-shot route. NOTE: serverless platforms cap this
 // (Vercel needs an appropriate plan/`maxDuration`); local dev has no cap.
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 const generatedProfileSchema = z
@@ -71,7 +73,7 @@ export async function POST(request: Request) {
   const candidate = nearbyMatchToShadowProfile(match);
 
   const participants = {
-    userName: user.displayName ?? "Your Shadow",
+    userName: user.displayName ?? "You",
     candidateName: candidate.displayName ?? match.name,
     candidate: {
       id: match.id,
@@ -87,6 +89,8 @@ export async function POST(request: Request) {
     async start(controller) {
       const send = (event: string, data: unknown) =>
         controller.enqueue(encoder.encode(sse(event, data)));
+      // Immediate heartbeat so clients know SSE opened before the first LLM call.
+      controller.enqueue(encoder.encode(": connected\n\n"));
       try {
         for await (const event of streamLiveMeeting(user, candidate)) {
           switch (event.type) {

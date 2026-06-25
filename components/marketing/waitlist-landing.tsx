@@ -3,11 +3,11 @@
 import { useId, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowDown, ArrowUpRight, Check, Loader2, Moon, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { PetalBloom } from "@/components/brand/petal-bloom";
+import { ShadowLogoImage as ShadowLogo } from "@/components/brand/shadow-logo-image";
 
 const WAITLIST_CAP = 1000;
 
@@ -36,159 +36,9 @@ function Reveal({
 function LogoMark() {
   return (
     <div className="flex items-center gap-2.5">
-      <PetalBloom size={24} />
+      <ShadowLogo className="h-8 w-8" priority />
       <span className="font-display text-[19px] font-medium tracking-tightish">Shadow</span>
     </div>
-  );
-}
-
-/**
- * The living "orb" motif: a soft periwinkle glow that breathes, ringed by a few
- * orbiting dots ("tadpoles"). Motion is disabled when the user prefers reduced
- * motion.
- */
-function Orb({
-  size = 420,
-  className,
-  tone = "light"
-}: {
-  size?: number;
-  className?: string;
-  tone?: "light" | "dark";
-}) {
-  const reduce = useReducedMotion();
-  const dots = [
-    { r: 0.5, dur: 18, delay: 0, dotR: 4, op: 0.95 },
-    { r: 0.62, dur: 26, delay: -6, dotR: 2.6, op: 0.7 },
-    { r: 0.44, dur: 22, delay: -12, dotR: 3, op: 0.85 }
-  ];
-
-  return (
-    <div
-      className={cn("relative", className)}
-      style={{ width: size, height: size }}
-      aria-hidden="true"
-    >
-      {/* outer haze */}
-      <div
-        className={cn("absolute inset-0 rounded-full blur-2xl", !reduce && "aurora-breathe")}
-        style={{
-          background:
-            "radial-gradient(closest-side, hsl(var(--aurora) / 0.55), hsl(var(--aurora-deep) / 0.18), transparent 72%)"
-        }}
-      />
-      {/* core orb */}
-      <div
-        className={cn(
-          "aurora-orb absolute rounded-full",
-          !reduce && "aurora-breathe"
-        )}
-        style={{ inset: "16%" }}
-      />
-      {/* inner sheen */}
-      <div
-        className="absolute rounded-full mix-blend-screen"
-        style={{
-          inset: "30%",
-          background:
-            "radial-gradient(closest-side at 38% 32%, hsl(0 0% 100% / 0.85), transparent 60%)"
-        }}
-      />
-      {/* orbiting tadpoles */}
-      <div className="absolute inset-0">
-        {dots.map((d, i) => (
-          <motion.div
-            key={i}
-            className="absolute left-1/2 top-1/2 h-0 w-0"
-            animate={reduce ? undefined : { rotate: 360 }}
-            transition={{ duration: d.dur, repeat: Infinity, ease: "linear", delay: d.delay }}
-          >
-            <span
-              className="absolute block rounded-full"
-              style={{
-                width: d.dotR * 2,
-                height: d.dotR * 2,
-                left: size * d.r,
-                top: -d.dotR,
-                background:
-                  tone === "dark" ? "hsl(var(--aurora-glow))" : "hsl(var(--aurora-deep))",
-                opacity: d.op,
-                boxShadow: "0 0 12px hsl(var(--aurora) / 0.8)"
-              }}
-            />
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/**
- * A compact version of the orb for use as a recurring accent inside cards.
- * Lightweight on purpose: a glowing core plus two orbiting "tadpole" dots, so
- * many can render without cost. Motion stops under prefers-reduced-motion.
- */
-function OrbBadge({
-  size = 52,
-  className,
-  tone = "light"
-}: {
-  size?: number;
-  className?: string;
-  tone?: "light" | "dark";
-}) {
-  const reduce = useReducedMotion();
-  const dots = [
-    { r: 0.46, dur: 14, delay: 0, dotR: 2.6, op: 0.95 },
-    { r: 0.58, dur: 20, delay: -7, dotR: 1.8, op: 0.65 }
-  ];
-  return (
-    <span
-      className={cn("relative inline-block shrink-0", className)}
-      style={{ width: size, height: size }}
-      aria-hidden="true"
-    >
-      <span
-        className={cn("absolute inset-0 rounded-full blur-[6px]", !reduce && "aurora-breathe")}
-        style={{
-          background:
-            "radial-gradient(closest-side, hsl(var(--aurora) / 0.6), hsl(var(--aurora-deep) / 0.2), transparent 72%)"
-        }}
-      />
-      <span
-        className={cn("aurora-orb absolute rounded-full", !reduce && "aurora-breathe")}
-        style={{ inset: "22%" }}
-      />
-      <span
-        className="absolute rounded-full mix-blend-screen"
-        style={{
-          inset: "34%",
-          background:
-            "radial-gradient(closest-side at 38% 32%, hsl(0 0% 100% / 0.9), transparent 60%)"
-        }}
-      />
-      {dots.map((d, i) => (
-        <motion.span
-          key={i}
-          className="absolute left-1/2 top-1/2 block h-0 w-0"
-          animate={reduce ? undefined : { rotate: 360 }}
-          transition={{ duration: d.dur, repeat: Infinity, ease: "linear", delay: d.delay }}
-        >
-          <span
-            className="absolute block rounded-full"
-            style={{
-              width: d.dotR * 2,
-              height: d.dotR * 2,
-              left: size * d.r,
-              top: -d.dotR,
-              background: tone === "dark" ? "hsl(var(--aurora-glow))" : "hsl(var(--aurora-deep))",
-              opacity: d.op,
-              boxShadow: "0 0 8px hsl(var(--aurora) / 0.85)"
-            }}
-          />
-        </motion.span>
-      ))}
-    </span>
   );
 }
 
@@ -358,29 +208,29 @@ const steps = [
   {
     index: "01",
     title: "Build your Shadow",
-    body: "Answer a handful of disarming questions. Shadow assembles an agent that holds your taste, your humour, and the way you actually connect. A version of you, off the leash."
+    body: "Answer a handful of disarming questions. Shadow assembles an agent that holds your taste, your humour, and the way you actually connect."
   },
   {
     index: "02",
-    title: "Send it out at night",
-    body: "While you sleep, your Shadow slips into the field and meets other people's agents. No swiping. No performing. Just the conversations you would rather not have to start."
+    title: "Send it into the field",
+    body: "Your Shadow meets other people's agents and has the first conversation for you. No swiping. No performing. Just a cleaner signal."
   },
   {
     index: "03",
     title: "It reads the chemistry",
-    body: "Your agent runs each conversation to the end and measures resonance. Where you click, where you would quietly grate. It files a verdict before morning."
+    body: "Your agent runs each conversation to the end and measures resonance. Where you click, where you would quietly grate. It files a considered read."
   },
   {
     index: "04",
     title: "You meet the shortlist",
-    body: "Wake to the two or three people worth a real evening. Chat unlocks only when you both want in. Everything that was going nowhere never reaches you."
+    body: "You see the people worth your real time. Chat unlocks only when you both want in. Everything going nowhere stays out of your way."
   }
 ];
 
 const features = [
   {
-    title: "It dates so you don't",
-    body: "Your agent sits through the openers, the small talk, the slow reveals. You get the highlights and the verdict, never the grind."
+    title: "It starts the hard bit",
+    body: "Your agent handles the openers, the small talk, and the slow reveals. You get the highlights and the read, never the grind."
   },
   {
     title: "A verdict, not a score",
@@ -406,7 +256,7 @@ const showcaseScreens = [
   {
     src: "/showcase/meeting.png",
     title: "The meeting",
-    alt: "Shadow app live meeting screen with a glowing orb and a structured conversation transcript between two representatives."
+    alt: "Shadow app live meeting screen with the Shadow logo and a structured conversation transcript between two representatives."
   },
   {
     src: "/showcase/meetings.png",
@@ -531,11 +381,6 @@ export function WaitlistLanding() {
 
       {/* Hero */}
       <section className="relative px-5 pb-24 pt-32 sm:px-8 sm:pt-40">
-        {/* soft ambient orb behind hero, top-right */}
-        <div className="pointer-events-none absolute -right-24 -top-24 hidden lg:block">
-          <Orb size={560} className="opacity-70" />
-        </div>
-
         <div className="relative mx-auto max-w-[1180px]">
           <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr]">
             <div>
@@ -543,22 +388,16 @@ export function WaitlistLanding() {
                 <p className="eyebrow text-aurora-deep">Agentic matching</p>
               </Reveal>
               <Reveal delay={0.06}>
-                {/* Headline options considered:
-                    - "Send a copy of yourself into the night. It dates for you."
-                    - "Your AI goes on the first dates. You meet the ones worth meeting."
-                    - "Your Shadow does the dating, so you don't have to."
-                    Chosen: the agent does the work, you arrive at the end. */}
                 <h1 className="mt-7 font-display text-[clamp(2.6rem,6.5vw,5rem)] font-light leading-[0.98] tracking-tighter2 text-balance">
-                  Your Shadow does the dating.
-                  <span className="italic text-aurora-deep"> You just show up.</span>
+                  Your Shadow reads the chemistry.
+                  <span className="italic text-aurora-deep"> You choose what happens next.</span>
                 </h1>
               </Reveal>
               <Reveal delay={0.12}>
                 <p className="mt-7 max-w-xl text-[17px] leading-8 text-muted-foreground">
-                  Shadow builds an agent that talks and chooses like you, then sends it out after
-                  dark to meet other people's agents. It runs the conversations, reads the chemistry,
-                  and hands you the two or three people worth your real time. You skip the swiping,
-                  the small talk, the dead ends.
+                  Shadow builds an agent that understands how you think, then lets it meet other
+                  people's agents before either of you spends your real time. It runs the first
+                  conversation, reads the chemistry, and brings back the connections worth knowing.
                 </p>
               </Reveal>
 
@@ -581,11 +420,13 @@ export function WaitlistLanding() {
               </Reveal>
             </div>
 
-            {/* hero orb (in-flow, mobile + desktop) */}
+            {/* hero logo (in-flow, mobile + desktop) */}
             <Reveal delay={0.1} className="order-first flex justify-center lg:order-none">
               <div className="aurora-drift">
-                <Orb size={340} className="sm:hidden" />
-                <Orb size={460} className="hidden sm:block" />
+                <ShadowLogo
+                  priority
+                  className="h-[280px] w-[280px] drop-shadow-[0_26px_50px_rgba(112,92,205,0.18)] sm:h-[420px] sm:w-[420px]"
+                />
               </div>
             </Reveal>
           </div>
@@ -609,8 +450,8 @@ export function WaitlistLanding() {
             <p className="mt-6 max-w-2xl text-[16px] leading-8 text-muted-foreground">
               It is reading something harder to fake. The way a person moves your nervous system in
               the first ten minutes. Curiosity. Calm. Confidence. The pull to keep going. Two agents
-              can clock that across a single conversation, long before you would have, on a third
-              date you no longer have to sit through.
+              can clock that across a single conversation, long before you would have, through
+              weeks of cautious back-and-forth.
             </p>
           </Reveal>
 
@@ -644,11 +485,11 @@ export function WaitlistLanding() {
                 </ul>
               </div>
             </Reveal>
-            {/* The Shadow way: elevated aurora card with a prominent orb */}
+            {/* The Shadow way: elevated aurora card with a prominent logo */}
             <Reveal delay={0.06} className="h-full">
               <div className="card-aurora group relative flex h-full flex-col overflow-hidden p-8 text-paper">
                 <div className="pointer-events-none absolute -right-8 -top-8 opacity-90">
-                  <Orb size={184} tone="dark" />
+                  <ShadowLogo className="h-44 w-44 opacity-80" />
                 </div>
                 <div className="relative flex items-center justify-between">
                   <p className="eyebrow text-aurora-glow">Shadow reads</p>
@@ -700,7 +541,7 @@ export function WaitlistLanding() {
                     {step.index}
                   </span>
                   <div className="relative flex items-center gap-3">
-                    <OrbBadge size={42} />
+                    <ShadowLogo className="h-11 w-11" />
                     <span className="eyebrow text-aurora-deep">Step {step.index}</span>
                   </div>
                   <h3 className="relative mt-6 font-display text-xl font-light leading-tight tracking-tightish">
@@ -730,7 +571,7 @@ export function WaitlistLanding() {
             {features.map((f, i) => (
               <Reveal key={f.title} delay={i * 0.06} className="h-full">
                 <div className="card-premium group flex h-full flex-col p-8">
-                  <OrbBadge size={56} />
+                  <ShadowLogo className="h-14 w-14" />
                   <h3 className="mt-7 font-display text-xl font-light tracking-tightish">{f.title}</h3>
                   <p className="mt-3 text-[15px] leading-7 text-muted-foreground">{f.body}</p>
                 </div>
@@ -742,8 +583,8 @@ export function WaitlistLanding() {
 
       {/* After dark vibe + final CTA */}
       <section className="relative overflow-hidden border-t border-border bg-ink px-5 py-28 text-paper sm:px-8 sm:py-36">
-        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-          <Orb size={640} tone="dark" className="opacity-80" />
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[560px] w-[560px] -translate-x-1/2 -translate-y-1/2 opacity-25 sm:h-[680px] sm:w-[680px]">
+          <ShadowLogo className="h-full w-full" />
         </div>
         <div className="relative mx-auto max-w-[760px] text-center">
           <Reveal>
@@ -753,7 +594,7 @@ export function WaitlistLanding() {
             </h2>
             <p className="mx-auto mt-6 max-w-xl text-[16px] leading-8 text-paper/70">
               Early access is small and deliberately quiet. Leave your email and we will send a
-              single message the night your Shadow is ready to go out and meet someone for you.
+              single message when your Shadow is ready to go out and meet someone for you.
             </p>
           </Reveal>
           <Reveal delay={0.1}>
@@ -776,7 +617,7 @@ export function WaitlistLanding() {
             <div className="flex items-center gap-4">
               <LogoMark />
               <span className="hidden text-sm text-muted-foreground sm:inline">
-                It does the dating. You do the deciding.
+                It reads the chemistry. You do the deciding.
               </span>
             </div>
             <a href="#join" className="link-underline text-sm text-muted-foreground">

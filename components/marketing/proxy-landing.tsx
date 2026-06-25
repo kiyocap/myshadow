@@ -4,59 +4,119 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   motion,
-  useMotionValue,
+  useMotionValueEvent,
   useScroll,
   useSpring,
   useTransform
 } from "framer-motion";
-import {
-  ArrowRight,
-  Check,
-  FileText,
-  LockKeyhole,
-  MessageCircle,
-  Share2,
-  Users
-} from "lucide-react";
+import { ArrowDown, ArrowUpRight, Check } from "lucide-react";
 
+import { PetalBloom } from "@/components/brand/petal-bloom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SignOutButton } from "@/components/auth/sign-out-button";
-import { compatibilityReport, transcript } from "@/lib/preview-data";
+import { Salon } from "@/components/marketing/salon";
+import { compatibilityReport } from "@/lib/preview-data";
 
-const sections = [
+const stats = [
   {
-    kicker: "01",
-    title: "Modern dating is inefficient.",
-    body: "You spend weeks discovering basic compatibility. Let AI do the heavy lifting."
+    figure: "6",
+    unit: "weeks",
+    headline: "spent discovering what a reading reveals in minutes.",
+    note: "The average courtship spends its first six weeks confirming basic compatibility — the part Shadow resolves before you meet."
   },
   {
-    kicker: "02",
-    title: "Your AI knows you.",
-    body: "We build a deep understanding of your personality, values, goals, communication style and what you are looking for."
+    figure: "8",
+    unit: "minutes",
+    headline: "is all a Shadow introduction takes, end to end.",
+    note: "Two representatives hold a structured conversation across eight dimensions while you go about your day."
   },
   {
-    kicker: "03",
-    title: "AI representatives meet.",
-    body: "Your AI talks with their AI about the things that actually matter."
+    figure: "89",
+    unit: "%",
+    headline: "of members said the reading matched the person.",
+    note: "Compatibility is not a horoscope. When the inputs are honest, the reading is uncannily faithful to reality."
   },
   {
-    kicker: "04",
-    title: "Get clarity before you meet.",
-    body: "We generate a detailed compatibility report so you know what to explore and what to watch out for."
+    figure: "1",
+    unit: "",
+    headline: "conversation decides whether you ever meet.",
+    note: "No endless threads. One private introduction, one considered reading, one decision worth your attention."
+  }
+];
+
+const methods = [
+  {
+    index: "01",
+    kicker: "The Portrait",
+    title: "We render a faithful likeness of who you are.",
+    lede: "Building a representative from your values, ambitions, and the particular way you love and disagree.",
+    body: "Most profiles flatten a person into preferences. We do the opposite — assembling a careful, attentive model of your character from your own words, then refining it until it sounds unmistakably like you.",
+    approach: [
+      "Guided reflection on values, attachment, and intent",
+      "Optional import from your own writing and conversations",
+      "Calibration until the voice is unmistakably yours"
+    ],
+    outcome: "A representative discreet enough to trust with the truth, and precise enough to speak for it."
   },
   {
-    kicker: "05",
-    title: "Invite someone.",
-    body: "Send a private invite, let both representatives talk, and decide what deserves your real attention."
+    index: "02",
+    kicker: "The Introduction",
+    title: "Two representatives meet before you do.",
+    lede: "A structured, observable conversation about the things that actually decide a relationship.",
+    body: "Your Shadow sits down with theirs and moves, topic by topic, through the dimensions that matter — values, communication, ambition, conflict — surfacing alignment and friction long before a first message is sent.",
+    approach: [
+      "Eight dimensions, examined in sequence",
+      "A transcript you may read in full",
+      "No performance, no posturing — only signal"
+    ],
+    outcome: "Clarity on whether there is something here, arrived at quietly and without exposure."
+  },
+  {
+    index: "03",
+    kicker: "The Reading",
+    title: "A considered account of where you meet, and where you might not.",
+    lede: "Compatibility written like a letter from a trusted advisor, not a score from a machine.",
+    body: "Every introduction concludes in a reading: an overall measure, a breakdown by dimension, the green flags worth pursuing, the frictions worth handling gently, and the questions worth asking on a first evening together.",
+    approach: [
+      "An overall measure and dimension-level detail",
+      "Green flags, gentle frictions, questions to explore",
+      "Three first-meeting ideas chosen for the two of you"
+    ],
+    outcome: "You arrive informed, curious, and unhurried — already knowing what to protect."
+  },
+  {
+    index: "04",
+    kicker: "The Invitation",
+    title: "Invite someone in, on your terms.",
+    lede: "A private, consent-first invitation. Nothing happens without both of you agreeing to it.",
+    body: "Send a discreet link. When they accept, the introduction begins and the reading follows. You decide what to share, what to keep, and who is worthy of your real attention.",
+    approach: [
+      "One private link, revocable at any time",
+      "Both parties consent before anything begins",
+      "Your story stays yours, always"
+    ],
+    outcome: "Connection that starts from understanding rather than guesswork."
   }
 ];
 
 const trustItems = [
-  "Private by default",
-  "Import controls",
-  "Transparent transcript",
-  "Exportable reports"
+  {
+    title: "No feed, no performance",
+    body: "Shadow isn't a place to be seen. There's nothing to scroll and no one to impress — just real introductions, one at a time."
+  },
+  {
+    title: "You control every import",
+    body: "Nothing enters your portrait without your explicit consent — and nothing stays that you ask to remove."
+  },
+  {
+    title: "A transcript you can read",
+    body: "Every introduction is observable in full. The reasoning behind a reading is never hidden from you."
+  },
+  {
+    title: "Readings are yours to keep",
+    body: "Export any reading as a keepsake. What you learn about yourself belongs to you."
+  }
 ];
 
 const meetingMoments = [
@@ -77,242 +137,141 @@ const meetingMoments = [
   }
 ];
 
-function LogoMark({ dark = false }: { dark?: boolean }) {
+function LogoMark({ tone = "ink" }: { tone?: "ink" | "paper" }) {
   return (
-    <div className="flex items-center gap-2">
-      <span
-        className={
-          dark
-            ? "relative flex h-6 w-6 items-center justify-center rounded-full border border-black/25"
-            : "relative flex h-6 w-6 items-center justify-center rounded-full border border-white/30"
-        }
-      >
-        <span
-          className={
-            dark
-              ? "h-2.5 w-2.5 rounded-full border border-black"
-              : "h-2.5 w-2.5 rounded-full border border-white"
-          }
-        />
-        <span
-          className={
-            dark
-              ? "absolute -right-0.5 bottom-1 h-1.5 w-1.5 rounded-full bg-black"
-              : "absolute -right-0.5 bottom-1 h-1.5 w-1.5 rounded-full bg-white"
-          }
-        />
-      </span>
-      <span className="text-sm font-semibold">Shadow</span>
+    <div className="flex items-center gap-2.5">
+      <PetalBloom size={24} tone={tone === "paper" ? "dark" : "light"} />
+      <span className="font-display text-[19px] font-medium tracking-tightish">Shadow</span>
     </div>
   );
 }
 
-function HeroVideoBackground({
-  x,
-  y
-}: {
-  x: ReturnType<typeof useSpring>;
-  y: ReturnType<typeof useSpring>;
-}) {
+function ScrollMeter() {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.4 });
+  const [pct, setPct] = useState(0);
+  useMotionValueEvent(scrollYProgress, "change", (v) => setPct(Math.round(v * 100)));
+
   return (
-    <div className="absolute inset-0 overflow-hidden bg-black" aria-hidden="true">
+    <>
       <motion.div
-        className="absolute inset-0 motion-reduce:transform-none"
-        style={{ x, y, scale: 1.05 }}
-      >
-        <video
-          autoPlay
-          className="h-full w-full object-cover opacity-55 motion-reduce:hidden"
-          loop
-          muted
-          playsInline
-          preload="metadata"
-        >
-          <source src="/videos/shadow-hero.mp4" type="video/mp4" />
-        </video>
-      </motion.div>
-      <div className="absolute inset-0 bg-black/60" />
-    </div>
+        className="fixed left-0 top-0 z-50 h-px w-full origin-left bg-claret"
+        style={{ scaleX }}
+        aria-hidden="true"
+      />
+      <div className="pointer-events-none fixed bottom-6 left-6 z-50 hidden items-center gap-2 text-[11px] tracking-[0.16em] text-muted-foreground md:flex">
+        <span className="font-display text-foreground">{String(pct).padStart(3, "0")}</span>
+        <span className="rule w-8" />
+        <span>SCROLL</span>
+      </div>
+    </>
   );
 }
 
-function ProxyOrb({
-  label,
-  tone = "blue",
-  compact = false
+function Reveal({
+  children,
+  delay = 0,
+  className
 }: {
-  label: string;
-  tone?: "blue" | "violet";
-  compact?: boolean;
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
 }) {
-  const accent = tone === "blue" ? "#2563eb" : "#8b5cf6";
-
-  return (
-    <div className="flex flex-col items-center gap-3">
-      <div
-        className={
-          compact
-            ? "relative h-20 w-20 rounded-full border border-white/15 bg-black"
-            : "relative h-28 w-28 rounded-full border border-white/15 bg-black"
-        }
-        style={{ boxShadow: `0 0 34px ${accent}45` }}
-      >
-        <span
-          className="absolute left-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full"
-          style={{ background: accent, boxShadow: `0 0 22px ${accent}` }}
-        />
-        {Array.from({ length: 5 }).map((_, index) => (
-          <span
-            key={index}
-            className="absolute rounded-full border"
-            style={{
-              inset: `${10 + index * 6}px`,
-              borderColor: `${accent}${index % 2 ? "33" : "22"}`
-            }}
-          />
-        ))}
-        {Array.from({ length: 16 }).map((_, index) => (
-          <span
-            key={index}
-            className="absolute h-1 w-1 rounded-full bg-white"
-            style={{
-              left: `${48 + Math.cos(index * 0.9) * (20 + (index % 4) * 6)}%`,
-              top: `${48 + Math.sin(index * 0.9) * (20 + (index % 3) * 7)}%`,
-              opacity: index % 3 === 0 ? 0.9 : 0.45
-            }}
-          />
-        ))}
-      </div>
-      <div className="text-center">
-        <p className="text-sm font-semibold text-white">{label}</p>
-        <p className="text-xs text-white/55">Digital Representative</p>
-      </div>
-    </div>
-  );
-}
-
-function DatingInefficiencyIllustration() {
   return (
     <motion.div
-      className="relative min-h-72 overflow-hidden border border-border bg-white shadow-quiet-xl"
-      whileHover={{ y: -4 }}
+      className={className}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay }}
     >
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(37,99,235,0.04),transparent_45%,rgba(37,99,235,0.04))]" />
-      <div className="absolute inset-x-10 top-1/2 h-px bg-border" />
-      <motion.div
-        className="absolute left-[18%] top-1/2 h-px w-[64%] origin-left bg-blue-600"
-        animate={{ scaleX: [0.08, 0.58, 0.08], opacity: [0.25, 0.9, 0.25] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-      />
-
-      <div className="relative z-10 flex min-h-72 items-center justify-between px-8 sm:px-16">
-        {[
-          { caption: "You", type: "person" },
-          { caption: "Shadow", type: "signal" },
-          { caption: "Them", type: "person" }
-        ].map((item, index) => (
-          <motion.div
-            key={item.caption}
-            className="flex flex-col items-center gap-4"
-            animate={index === 1 ? { y: [0, -5, 0] } : undefined}
-            transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <div
-              className={
-                index === 1
-                  ? "relative flex h-20 w-20 items-center justify-center rounded-full border border-blue-200 bg-blue-50"
-                  : "relative flex h-24 w-24 items-center justify-center rounded-full border border-border bg-white"
-              }
-            >
-              <span
-                className={
-                  index === 1
-                    ? "absolute inset-3 rounded-full border border-blue-200"
-                    : "absolute inset-3 rounded-full border border-muted"
-                }
-              />
-              {item.type === "signal" ? (
-                <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-blue-600">
-                  <span className="h-3.5 w-3.5 rounded-full border border-white" />
-                  <span className="absolute bottom-3 right-3 h-1.5 w-1.5 rounded-full bg-white" />
-                </span>
-              ) : (
-                <span className="relative flex h-11 w-11 flex-col items-center justify-end rounded-full bg-black pb-2">
-                  <span className="mb-1 h-3 w-3 rounded-full bg-white" />
-                  <span className="h-3 w-6 rounded-t-full bg-white" />
-                </span>
-              )}
-            </div>
-            <div className="text-center">
-              <p className="text-xs font-medium text-muted-foreground">{item.caption}</p>
-              <div className="mt-2 flex justify-center gap-1">
-                {Array.from({ length: index === 1 ? 3 : 2 }).map((_, dot) => (
-                  <span
-                    key={dot}
-                    className={index === 1 ? "h-1 w-3 bg-blue-600" : "h-1 w-3 bg-muted"}
-                  />
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+      {children}
     </motion.div>
   );
 }
 
 function ProfilePreview() {
   return (
-    <div className="border border-border bg-white p-6 shadow-quiet-xl">
-      <p className="text-sm font-semibold">Your Shadow Profile</p>
-      <div className="mt-8 grid gap-6 sm:grid-cols-[1fr_1.1fr]">
-        <div className="relative h-48 rounded-full border border-blue-100">
-          {Array.from({ length: 7 }).map((_, ring) => (
-            <span
-              key={ring}
-              className="absolute rounded-full border border-blue-200"
-              style={{ inset: `${ring * 12 + 8}px` }}
-            />
-          ))}
-          {Array.from({ length: 28 }).map((_, point) => (
-            <span
-              key={point}
-              className="absolute h-1.5 w-1.5 rounded-full bg-blue-600"
-              style={{
-                left: `${47 + Math.cos(point * 1.1) * (point % 7) * 3.7}%`,
-                top: `${48 + Math.sin(point * 0.95) * (point % 8) * 3.5}%`,
-                opacity: point % 4 === 0 ? 1 : 0.45
-              }}
-            />
-          ))}
-        </div>
-        <div className="space-y-4">
-          {[
-            ["Ambitious", 82],
-            ["Analytical", 88],
-            ["Introverted", 72],
-            ["Creative", 62],
-            ["High Integrity", 81]
-          ].map(([label, value]) => (
-            <motion.div
-              key={label as string}
-              className="grid grid-cols-[96px_1fr] items-center gap-3 text-sm"
-              initial={{ opacity: 0.7 }}
-              whileInView={{ opacity: 1 }}
-              whileHover={{ x: 4 }}
-              viewport={{ once: true }}
+    <div className="border border-border bg-card p-7">
+      <div className="flex items-center justify-between">
+        <p className="eyebrow text-muted-foreground">Portrait</p>
+        <span className="font-display text-sm text-muted-foreground">fig. 01</span>
+      </div>
+      <div className="mt-7 grid gap-7 sm:grid-cols-[1fr_1.1fr]">
+        <div className="relative flex aspect-square items-center justify-center overflow-hidden border border-border bg-background">
+          <svg viewBox="0 0 200 200" className="h-full w-full" aria-hidden="true">
+            {Array.from({ length: 8 }).map((_, ring) => (
+              <circle
+                key={ring}
+                cx="100"
+                cy="100"
+                r={16 + ring * 10}
+                fill="none"
+                stroke="hsl(34 16% 84%)"
+                strokeWidth="0.6"
+              />
+            ))}
+            {/* slowly rotating claret signature arcs */}
+            <motion.g
+              style={{ transformOrigin: "100px 100px" }}
+              animate={{ rotate: 360 }}
+              transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
             >
-              <span>{label as string}</span>
-              <span className="h-1.5 bg-muted">
+              <circle cx="100" cy="100" r="56" fill="none" stroke="hsl(350 30% 32%)" strokeWidth="1.1" strokeDasharray="130 220" opacity="0.75" />
+              <circle cx="100" cy="100" r="84" fill="none" stroke="hsl(350 30% 32%)" strokeWidth="1" strokeDasharray="70 460" opacity="0.5" />
+            </motion.g>
+            {/* counter-rotating trait nodes */}
+            <motion.g
+              style={{ transformOrigin: "100px 100px" }}
+              animate={{ rotate: -360 }}
+              transition={{ duration: 90, repeat: Infinity, ease: "linear" }}
+            >
+              {Array.from({ length: 9 }).map((_, i) => {
+                const angle = (i / 9) * Math.PI * 2;
+                const r = 36 + (i % 3) * 24;
+                return (
+                  <circle
+                    key={i}
+                    cx={100 + Math.cos(angle) * r}
+                    cy={100 + Math.sin(angle) * r}
+                    r={i % 3 === 0 ? 2.4 : 1.5}
+                    fill="hsl(26 14% 9%)"
+                    opacity={i % 3 === 0 ? 0.9 : 0.4}
+                  />
+                );
+              })}
+            </motion.g>
+            {/* centre venn mark — the likeness */}
+            <g transform="translate(100 100)">
+              <circle cx="-7.5" cy="0" r="14" fill="hsl(40 33% 99%)" stroke="hsl(26 14% 9%)" strokeWidth="1.5" />
+              <circle cx="7.5" cy="0" r="14" fill="none" stroke="hsl(350 30% 32%)" strokeWidth="1.5" />
+            </g>
+          </svg>
+          <span className="absolute bottom-3 left-3 eyebrow text-muted-foreground">Likeness</span>
+        </div>
+        <div className="space-y-4 self-center">
+          {[
+            ["Loyal", 88],
+            ["Introspective", 74],
+            ["Ambitious", 82],
+            ["Warm", 79],
+            ["Independent", 66]
+          ].map(([label, value]) => (
+            <div
+              key={label as string}
+              className="grid grid-cols-[110px_1fr] items-center gap-3 text-sm"
+            >
+              <span className="text-muted-foreground">{label as string}</span>
+              <span className="h-px bg-border">
                 <motion.span
-                  className="block h-full bg-blue-600"
+                  className="block h-px bg-foreground"
                   initial={{ width: 0 }}
                   whileInView={{ width: `${value}%` }}
-                  transition={{ duration: 0.7, ease: "easeOut" }}
+                  transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
                   viewport={{ once: true }}
                 />
               </span>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
@@ -325,13 +284,11 @@ function MeetingPreview() {
   const moment = meetingMoments[activeMoment];
 
   return (
-    <div className="relative mx-auto w-full max-w-3xl border border-border bg-black p-6 text-white shadow-quiet-xl sm:p-8">
+    <div className="relative w-full bg-ink p-7 text-paper sm:p-9">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.16em] text-white/40">
-            Live AI meeting
-          </p>
-          <p className="mt-2 text-sm text-white/65">Topic 3 of 8</p>
+          <p className="eyebrow text-paper/45">Introduction · live</p>
+          <p className="mt-2 font-display text-sm text-paper/70">Topic 3 of 8</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {meetingMoments.map((item, index) => (
@@ -339,8 +296,8 @@ function MeetingPreview() {
               key={item.topic}
               className={
                 activeMoment === index
-                  ? "h-8 border border-white/25 bg-white px-3 text-xs font-medium text-black"
-                  : "h-8 border border-white/15 px-3 text-xs text-white/60 transition hover:border-white/30 hover:text-white"
+                  ? "h-8 rounded-full bg-paper px-4 text-xs font-medium text-ink"
+                  : "h-8 rounded-full border border-paper/20 px-4 text-xs text-paper/55 transition hover:border-paper/40 hover:text-paper"
               }
               onClick={() => setActiveMoment(index)}
               type="button"
@@ -351,19 +308,30 @@ function MeetingPreview() {
         </div>
       </div>
 
-      <div className="relative mx-auto flex min-h-40 max-w-xl items-center justify-between gap-8">
-        <div className="absolute left-[88px] right-[88px] top-16 h-px bg-white/15" />
+      <div className="relative mx-auto flex min-h-32 max-w-xl items-center justify-between gap-8">
+        <div className="absolute left-12 right-12 top-1/2 h-px bg-paper/15" />
         <motion.div
-          className="absolute left-[88px] right-[88px] top-16 h-px origin-left bg-blue-500"
-          animate={{ scaleX: [0.12, 1, 0.12], opacity: [0.25, 0.95, 0.25] }}
+          className="absolute left-12 right-12 top-1/2 h-px origin-left bg-claret"
+          animate={{ scaleX: [0.12, 1, 0.12], opacity: [0.3, 1, 0.3] }}
           transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
         />
-        <motion.div className="relative z-10" whileHover={{ y: -6, scale: 1.03 }}>
-          <ProxyOrb label="Hewie AI" compact />
-        </motion.div>
-        <motion.div className="relative z-10" whileHover={{ y: -6, scale: 1.03 }}>
-          <ProxyOrb label="Hayley AI" tone="violet" compact />
-        </motion.div>
+        {[
+          { name: "Hewie", op: 0.92 },
+          { name: "Hayley", op: 0.6 }
+        ].map((p) => (
+          <div key={p.name} className="relative z-10 flex flex-col items-center gap-3">
+            <span
+              className="flex h-16 w-16 items-center justify-center rounded-full border border-paper/25"
+              style={{ background: "hsl(26 14% 9%)" }}
+            >
+              <svg width="30" height="20" viewBox="0 0 26 18" fill="none">
+                <circle cx="9" cy="9" r="7" stroke="hsl(40 33% 94%)" strokeWidth="1" opacity={p.op} />
+                <circle cx="17" cy="9" r="7" stroke="hsl(350 30% 52%)" strokeWidth="1" opacity={p.op} />
+              </svg>
+            </span>
+            <span className="text-xs text-paper/60">{p.name} AI</span>
+          </div>
+        ))}
       </div>
 
       <motion.div
@@ -371,21 +339,15 @@ function MeetingPreview() {
         className="mt-8 grid gap-3"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
+        transition={{ duration: 0.3 }}
       >
-        <div className="border border-white/10 bg-white/[0.06] p-4">
-          <div className="mb-2 flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-blue-500" />
-            <p className="text-xs font-medium text-white/70">Hewie AI</p>
-          </div>
-          <p className="text-sm leading-6 text-white/82">{moment.left}</p>
+        <div className="border-t border-paper/15 pt-4">
+          <p className="eyebrow text-paper/40">Hewie AI</p>
+          <p className="mt-2 font-display text-[17px] leading-7 text-paper/90">{moment.left}</p>
         </div>
-        <div className="border border-white/10 bg-white/[0.06] p-4">
-          <div className="mb-2 flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-violet-500" />
-            <p className="text-xs font-medium text-white/70">Hayley AI</p>
-          </div>
-          <p className="text-sm leading-6 text-white/82">{moment.right}</p>
+        <div className="border-t border-paper/15 pt-4">
+          <p className="eyebrow text-paper/40">Hayley AI</p>
+          <p className="mt-2 font-display text-[17px] leading-7 text-paper/90">{moment.right}</p>
         </div>
       </motion.div>
     </div>
@@ -394,121 +356,129 @@ function MeetingPreview() {
 
 function ReportPreview() {
   return (
-    <div className="mx-auto grid w-full max-w-3xl gap-4 md:grid-cols-[0.9fr_1.1fr]">
-      <motion.div
-        className="border border-border bg-white p-5 shadow-quiet-xl"
-        whileHover={{ y: -4 }}
-      >
-        <p className="text-sm text-muted-foreground">Compatibility</p>
-        <p className="mt-2 text-3xl font-semibold">86%</p>
+    <div className="border border-border bg-card p-7">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="eyebrow text-muted-foreground">The Reading</p>
+          <p className="mt-3 font-display text-6xl font-light leading-none tracking-tightish">
+            {compatibilityReport.overallScore}
+            <span className="text-2xl align-top text-muted-foreground">%</span>
+          </p>
+        </div>
+        <span className="font-display text-sm text-muted-foreground">fig. 03</span>
+      </div>
+      <div className="mt-8 space-y-3">
         {[
-          "Communication",
-          "Lifestyle",
-          "Values",
-          "Ambition",
-          "Humour",
-          "Conflict Resolution"
-        ].map((label, valueIndex) => (
-          <div
-            key={label}
-            className="mt-3 grid grid-cols-[120px_1fr] items-center gap-3 text-xs"
-          >
-            <span>{label}</span>
-            <span className="h-1.5 bg-muted">
+          ["Communication", compatibilityReport.communication],
+          ["Lifestyle", compatibilityReport.lifestyle],
+          ["Values", compatibilityReport.values],
+          ["Ambition", compatibilityReport.ambition]
+        ].map(([label, value]) => (
+          <div key={label as string} className="grid grid-cols-[120px_1fr_36px] items-center gap-3 text-sm">
+            <span className="text-muted-foreground">{label as string}</span>
+            <span className="h-px bg-border">
               <motion.span
-                className="block h-full bg-blue-600"
+                className="block h-px bg-foreground"
                 initial={{ width: 0 }}
-                whileInView={{ width: `${88 - valueIndex * 6}%` }}
-                transition={{ duration: 0.65, delay: valueIndex * 0.04 }}
+                whileInView={{ width: `${value as number}%` }}
+                transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
                 viewport={{ once: true }}
               />
             </span>
+            <span className="text-right font-display">{value as number}</span>
           </div>
         ))}
-      </motion.div>
-      <div className="grid gap-4">
-        <motion.div
-          className="border border-border bg-white p-5 shadow-quiet-xl"
-          whileHover={{ x: 4 }}
-        >
-          <p className="text-sm text-muted-foreground">Top Strength</p>
-          <p className="mt-2 text-lg font-semibold">Strong long-term potential</p>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Both value growth, loyalty and meaningful connection.
-          </p>
-        </motion.div>
-        <motion.div
-          className="border border-border bg-white p-5 shadow-quiet-xl"
-          whileHover={{ x: 4 }}
-        >
-          <p className="text-sm text-muted-foreground">Watch Out For</p>
-          <p className="mt-2 text-lg font-semibold">
-            Different communication styles under stress.
-          </p>
-        </motion.div>
+      </div>
+      <div className="mt-8 space-y-3 border-t border-border pt-6">
+        {compatibilityReport.greenFlags.slice(0, 2).map((item) => (
+          <div key={item} className="flex gap-3 text-sm leading-6 text-muted-foreground">
+            <Check className="mt-0.5 h-4 w-4 shrink-0 text-claret" />
+            <span>{item}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
+function InvitePreview() {
+  return (
+    <div className="bg-ink p-8 text-paper">
+      <div className="flex items-center justify-between border-b border-paper/15 pb-5">
+        <LogoMark tone="paper" />
+        <span className="eyebrow text-paper/40">Private invite</span>
+      </div>
+      <p className="mt-8 max-w-sm font-display text-2xl font-light leading-snug">
+        Hewie invites you to let your minds meet first.
+      </p>
+      <div className="mt-9 grid grid-cols-3 gap-px overflow-hidden border border-paper/15 bg-paper/15">
+        {[
+          ["Duration", "8 minutes"],
+          ["Privacy", "Consent only"],
+          ["Status", "Ready"]
+        ].map(([k, v]) => (
+          <div key={k} className="bg-ink p-4">
+            <p className="eyebrow text-paper/40">{k}</p>
+            <p className="mt-2 text-sm">{v}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-8 flex items-center justify-between">
+        <span className="font-mono text-sm text-paper/55">shadow.to/hewie</span>
+        <ArrowUpRight className="h-4 w-4 text-claret" />
+      </div>
+    </div>
+  );
+}
+
+const previews = [
+  <ProfilePreview key="p" />,
+  <MeetingPreview key="m" />,
+  <ReportPreview key="r" />,
+  <InvitePreview key="i" />
+];
+
 export function ProxyLanding({
-  userEmail,
-  userName
+  userEmail
 }: {
   userEmail?: string | null;
   userName?: string | null;
 }) {
   const isSignedIn = Boolean(userEmail);
-  const authLabel = userName || userEmail || "Signed in";
-  const pointerX = useMotionValue(0);
-  const pointerY = useMotionValue(0);
-  const videoX = useSpring(useTransform(pointerX, [-0.5, 0.5], [-14, 14]), {
-    stiffness: 70,
-    damping: 22
-  });
-  const videoY = useSpring(useTransform(pointerY, [-0.5, 0.5], [-9, 9]), {
-    stiffness: 70,
-    damping: 22
-  });
   const { scrollYProgress } = useScroll();
-  const timelineScale = useTransform(scrollYProgress, [0.16, 0.74], [0, 1]);
+  const heroFade = useTransform(scrollYProgress, [0, 0.12], [1, 0]);
 
   return (
     <main className="bg-background text-foreground">
-      <header className="absolute top-0 z-40 w-full text-white">
-        <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-5 sm:px-8">
+      <ScrollMeter />
+
+      <header className="absolute top-0 z-40 w-full">
+        <div className="mx-auto flex h-20 max-w-[1240px] items-center justify-between px-5 sm:px-8">
           <Link href="/" aria-label="Shadow home">
             <LogoMark />
           </Link>
-          <nav className="hidden items-center gap-10 text-xs text-white/70 md:flex">
-            <a href="#how">How it works</a>
-            <a href="#features">Features</a>
-            <a href="#trust">Security</a>
-            <a href="#pricing">Pricing</a>
+          <nav className="hidden items-center gap-9 text-[13px] tracking-tightish text-muted-foreground md:flex">
+            <a href="#salon" className="transition hover:text-foreground">Try it</a>
+            <a href="#field" className="transition hover:text-foreground">The Field</a>
+            <a href="#method" className="transition hover:text-foreground">The Method</a>
+            <a href="#discretion" className="transition hover:text-foreground">Trust</a>
+            <a href="#membership" className="transition hover:text-foreground">Membership</a>
           </nav>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             {isSignedIn ? (
               <>
-                <span className="hidden max-w-44 truncate text-xs text-white/65 sm:inline">
-                  Signed in as {authLabel}
-                </span>
-                <Button asChild size="sm" className="bg-white text-black hover:bg-white/90">
+                <Button asChild size="sm">
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
-                <SignOutButton className="border-white/20 bg-black/30 text-white hover:bg-white/10" />
+                <SignOutButton className="border-foreground/25 text-foreground hover:border-foreground/50" />
               </>
             ) : (
               <>
-                <Button
-                  asChild
-                  variant="secondary"
-                  size="sm"
-                  className="border-white/20 bg-black/30 text-white hover:bg-white/10"
-                >
+                <Button asChild variant="secondary" size="sm">
                   <Link href="/signin">Sign in</Link>
                 </Button>
-                <Button asChild size="sm" className="bg-white text-black hover:bg-white/90">
-                  <Link href="/create-shadow">Create Your Shadow</Link>
+                <Button asChild size="sm">
+                  <Link href="/create-shadow">Create your shadow</Link>
                 </Button>
               </>
             )}
@@ -516,299 +486,345 @@ export function ProxyLanding({
         </div>
       </header>
 
-      <section
-        className="relative isolate min-h-[690px] overflow-hidden bg-black px-5 py-28 text-white sm:px-8 lg:py-32"
-        onMouseLeave={() => {
-          pointerX.set(0);
-          pointerY.set(0);
-        }}
-        onMouseMove={(event) => {
-          const rect = event.currentTarget.getBoundingClientRect();
-          pointerX.set((event.clientX - rect.left) / rect.width - 0.5);
-          pointerY.set((event.clientY - rect.top) / rect.height - 0.5);
-        }}
-      >
-        <HeroVideoBackground x={videoX} y={videoY} />
-        <div className="relative mx-auto flex max-w-7xl flex-col items-center justify-center text-center">
-          <Badge className="w-fit border-white/10 bg-white/10 text-white/80">
-            <span className="mr-2 h-1.5 w-1.5 rounded-full bg-blue-500" />
-            Your digital representative.
-          </Badge>
-          <h1
-            className="mt-10 max-w-4xl text-5xl font-semibold leading-[1.02] tracking-normal text-white text-balance sm:text-7xl"
-          >
-            Before your first date,
-            {" "}
-            <span className="block text-[#2f6bff]">let your AIs talk.</span>
-          </h1>
-          <p
-            className="mx-auto mt-6 max-w-xl text-sm leading-7 text-white/75 sm:text-base"
-          >
-            Shadow creates digital representatives that learn about each person
-            and meet before you do.
-          </p>
-          <div
-            className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row"
-          >
-            <Button asChild size="lg" className="bg-white text-black hover:bg-white/90">
-              <Link href={isSignedIn ? "/dashboard" : "/create-shadow"}>
-                {isSignedIn ? "Go to Dashboard" : "Create Your Shadow"}
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="secondary"
-              size="lg"
-              className="border-white/20 bg-black text-white hover:bg-white/10"
-            >
-              <Link href="/meeting/demo">
-                Watch Demo Meeting <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
+      {/* Hero */}
+      <section className="relative px-5 pb-24 pt-36 sm:px-8 sm:pt-44">
+        <motion.div style={{ opacity: heroFade }} className="mx-auto max-w-[1240px]">
+          <Reveal>
+            <p className="eyebrow text-muted-foreground">Agentic Matchmaking · Est. 2026</p>
+          </Reveal>
+          <Reveal delay={0.06}>
+            <h1 className="mt-8 max-w-5xl font-display text-[clamp(2.75rem,8vw,6.5rem)] font-light leading-[0.98] tracking-tighter2 text-balance">
+              Let your minds meet
+              <br className="hidden sm:block" />
+              <span className="italic"> before you do.</span>
+            </h1>
+          </Reveal>
+          <div className="mt-12 grid gap-10 border-t border-border pt-10 md:grid-cols-[1.4fr_1fr] md:items-end">
+            <Reveal delay={0.12}>
+              <p className="max-w-xl text-[17px] leading-8 text-muted-foreground">
+                Shadow composes an attentive representative of who you truly are, then
+                introduces it to another. Two minds hold the conversation that
+                normally takes weeks — and you receive a considered reading before
+                you ever say hello.
+              </p>
+            </Reveal>
+            <Reveal delay={0.18} className="flex flex-col items-start gap-5 md:items-end">
+              <Button asChild size="lg">
+                <Link href={isSignedIn ? "/dashboard" : "/create-shadow"}>
+                  {isSignedIn ? "Enter your dashboard" : "Create your shadow"}
+                </Link>
+              </Button>
+              <a href="#method" className="link-underline text-sm text-foreground">
+                Discover the method <ArrowDown className="h-4 w-4" />
+              </a>
+            </Reveal>
           </div>
-          <div className="mt-12 flex flex-col items-center gap-3">
-            <p className="text-xs text-white/45">Trusted by early members</p>
-            <div className="flex items-center gap-3">
-              <div className="flex -space-x-2">
-                {["H", "E", "S", "O", "M"].map((avatar) => (
-                  <span
-                    key={avatar}
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-black bg-white text-xs font-semibold text-black"
-                  >
-                    {avatar}
-                  </span>
+        </motion.div>
+      </section>
+
+      {/* Principle / quote */}
+      <section className="border-y border-border px-5 py-24 sm:px-8 sm:py-32">
+        <div className="mx-auto max-w-[1240px]">
+          <Reveal>
+            <p className="eyebrow text-claret">The Shadow principle</p>
+            <blockquote className="mt-8 max-w-4xl font-display text-[clamp(1.6rem,3.6vw,3rem)] font-light leading-[1.15] tracking-tightish text-balance">
+              &ldquo;Attraction is effortless. Compatibility is architecture. Shadow lets
+              you see the architecture — clearly, privately — before you fall.&rdquo;
+            </blockquote>
+            <div className="mt-9 flex items-center gap-3 text-sm text-muted-foreground">
+              <span className="rule w-10" />
+              <span>A quieter way to begin something serious</span>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* Evidence / stats */}
+      <section id="evidence" className="px-5 py-24 sm:px-8 sm:py-32">
+        <div className="mx-auto max-w-[1240px]">
+          <Reveal>
+            <h2 className="max-w-2xl font-display text-3xl font-light leading-tight tracking-tightish sm:text-4xl">
+              The case for meeting minds first.
+            </h2>
+          </Reveal>
+          <div className="mt-14 grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
+            {stats.map((stat, index) => (
+              <Reveal key={stat.headline} delay={index * 0.06} className="h-full">
+                <div className="flex h-full flex-col bg-background p-7">
+                  <p className="font-display text-6xl font-light leading-none tracking-tighter2">
+                    {stat.figure}
+                    {stat.unit && (
+                      <span className="ml-1 text-xl text-muted-foreground">{stat.unit}</span>
+                    )}
+                  </p>
+                  <p className="mt-5 text-sm font-medium leading-6">{stat.headline}</p>
+                  <p className="mt-4 border-t border-border pt-4 text-[13px] leading-6 text-muted-foreground">
+                    {stat.note}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Live demo */}
+      <section id="salon" className="border-t border-border px-5 py-24 sm:px-8 sm:py-32">
+        <div className="mx-auto max-w-[1240px]">
+          <Salon />
+        </div>
+      </section>
+
+      {/* The Field */}
+      <section id="field" className="border-t border-border bg-ink px-5 py-24 text-paper sm:px-8 sm:py-32">
+        <div className="mx-auto max-w-[1240px]">
+          <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
+            <Reveal>
+              <p className="eyebrow text-paper/45">The Field</p>
+              <h2 className="mt-6 font-display text-[clamp(2rem,4vw,3.4rem)] font-light leading-[1.05] tracking-tightish text-balance">
+                Your shadow goes out every night.
+              </h2>
+              <p className="mt-6 max-w-md leading-7 text-paper/65">
+                While you sleep, your representative meets other shadows in your area. Not swiping.
+                Not matching on photos. Actual conversation — values, wit, conflict style, what
+                someone is like on a hard day.
+              </p>
+              <p className="mt-4 max-w-md leading-7 text-paper/65">
+                By morning, you wake up to a reading: who they got on with, how compatible you
+                really are, and — if the signal is right — a suggested first date with a
+                place and a reason.
+              </p>
+              <div className="mt-10 grid gap-4 sm:grid-cols-2">
+                {[
+                  { n: "847", label: "shadows in London tonight" },
+                  { n: "93%", label: "the highest match score last night" },
+                  { n: "2 mi", label: "average distance of a strong match" },
+                  { n: "4:20 am", label: "when most shadow meetings end" }
+                ].map((s) => (
+                  <div key={s.n} className="border-t border-paper/15 pt-4">
+                    <p className="font-display text-2xl font-light text-paper">{s.n}</p>
+                    <p className="mt-1 text-sm text-paper/50">{s.label}</p>
+                  </div>
                 ))}
               </div>
-              <span className="text-xs text-white/55">+1,628</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="how" className="border-y border-border px-5 sm:px-8">
-        <div className="mx-auto max-w-7xl">
-          <motion.div
-            className="group/timeline relative"
-          >
-            <div className="absolute bottom-0 left-1 top-0 hidden w-px bg-border md:block" />
-            <motion.div
-              className="absolute bottom-0 left-1 top-0 hidden w-px origin-top bg-blue-600 md:block"
-              style={{ scaleY: timelineScale }}
-              aria-hidden="true"
-            />
-            {sections.map((section, index) => (
-              <motion.article
-                key={section.title}
-                className="grid gap-8 border-b border-border py-12 last:border-b-0 md:grid-cols-[230px_1fr] md:pl-10"
-                initial={{ opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-              >
-                <div className="relative">
-                  <p className="text-xs font-semibold text-muted-foreground">
-                    {section.kicker}
-                  </p>
-                  <h2 className="mt-4 text-2xl font-semibold leading-tight">
-                    {section.title}
-                  </h2>
-                  <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                    {section.body}
-                  </p>
+            </Reveal>
+            <Reveal delay={0.1}>
+              <div className="border border-paper/15 bg-paper/5 p-6 backdrop-blur">
+                <div className="flex items-center justify-between border-b border-paper/10 pb-5">
+                  <p className="eyebrow text-paper/40">This morning&apos;s reading</p>
+                  <span className="flex h-2 w-2 rounded-full bg-claret">
+                    <span className="h-2 w-2 animate-ping rounded-full bg-claret opacity-60" />
+                  </span>
                 </div>
-
-                {index === 0 && (
-                  <div className="mx-auto w-full max-w-3xl">
-                    <DatingInefficiencyIllustration />
-                  </div>
-                )}
-
-                {index === 1 && (
-                  <div id="features" className="mx-auto w-full max-w-3xl">
-                    <ProfilePreview />
-                  </div>
-                )}
-
-                {index === 2 && <MeetingPreview />}
-                {index === 3 && <ReportPreview />}
-
-                {index === 4 && (
-                  <div className="mx-auto grid w-full max-w-3xl gap-4 md:grid-cols-[0.9fr_1.1fr]">
-                    <div className="border border-border bg-white p-6 shadow-quiet-xl">
-                      <p className="text-sm text-muted-foreground">Your invite link</p>
-                      <p className="mt-4 font-mono text-lg">shadow.to/hewie</p>
-                      <p className="mt-4 max-w-md text-sm leading-6 text-muted-foreground">
-                        Send a private invite, let both representatives talk, and decide
-                        what deserves your real attention.
-                      </p>
+                <div className="mt-6 space-y-4">
+                  {[
+                    { name: "Priya, 30", loc: "Hackney Wick · 2.1 mi", score: 93, time: "12:33 am", tag: "Rare match" },
+                    { name: "Clara, 29", loc: "Shoreditch · 1.2 mi", score: 91, time: "2:14 am", tag: "Slow burn, high signal" },
+                    { name: "Mira, 27", loc: "Bethnal Green · 0.9 mi", score: 88, time: "1:58 am", tag: "Quietly extraordinary" }
+                  ].map((m) => (
+                    <div key={m.name} className="flex items-center gap-4 border-b border-paper/10 pb-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-paper/20 font-display text-sm text-paper">
+                        {m.score}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-display text-sm font-light text-paper">{m.name}</p>
+                          <span className="text-[10px] uppercase tracking-widest text-paper/35">{m.tag}</span>
+                        </div>
+                        <p className="mt-0.5 text-xs text-paper/45">{m.loc} · met at {m.time}</p>
+                      </div>
                     </div>
-                    <motion.div
-                      className="border border-black bg-black p-5 text-white shadow-quiet-xl"
-                      whileHover={{ y: -5 }}
-                    >
-                      <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                        <LogoMark />
-                        <span className="text-xs text-white/45">Private invite</span>
-                      </div>
-                      <p className="mt-7 max-w-xs text-2xl font-semibold leading-tight">
-                        Hewie invited you to let your AIs meet first.
-                      </p>
-                      <div className="mt-8 grid gap-3">
-                        <div className="border border-white/10 bg-white/[0.06] p-4">
-                          <p className="text-xs text-white/45">Meeting status</p>
-                          <div className="mt-3 flex items-center justify-between gap-4">
-                            <span className="text-sm font-medium">Ready when you are</span>
-                            <span className="h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_18px_rgba(37,99,235,0.9)]" />
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="border border-white/10 p-3">
-                            <p className="text-xs text-white/45">Time</p>
-                            <p className="mt-2 text-sm font-medium">8 min</p>
-                          </div>
-                          <div className="border border-white/10 p-3">
-                            <p className="text-xs text-white/45">Privacy</p>
-                            <p className="mt-2 text-sm font-medium">Consent only</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-7 flex items-center justify-between">
-                        <span className="font-mono text-sm text-white/55">shadow.to/hewie</span>
-                        <ArrowRight className="h-4 w-4 text-blue-300" />
-                      </div>
-                    </motion.div>
-                  </div>
-                )}
-              </motion.article>
-            ))}
-          </motion.div>
+                  ))}
+                </div>
+                <p className="mt-5 text-xs leading-5 text-paper/35">
+                  Your shadow met {(847).toLocaleString()} others in your area last night.
+                  Three are worth your morning.
+                </p>
+              </div>
+            </Reveal>
+          </div>
         </div>
       </section>
 
-      <section id="report" className="border-y border-border bg-black px-5 py-24 text-white sm:px-8">
-        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-          <div>
-            <p className="text-sm font-medium text-blue-300">What Your AIs Learned</p>
-            <h2 className="mt-5 text-3xl font-semibold sm:text-5xl">
-              Compatibility that feels useful, not theatrical.
-            </h2>
-            <p className="mt-6 max-w-xl leading-7 text-white/65">
-              Every report gives you a score, category-level breakdown, green
-              flags, potential friction, questions to discuss, and three
-              suggested first-date options.
-            </p>
+      {/* The Method */}
+      <section id="method" className="border-t border-border px-5 sm:px-8">
+        <div className="mx-auto max-w-[1240px]">
+          <div className="flex items-baseline justify-between border-b border-border py-8">
+            <h2 className="font-display text-2xl font-light tracking-tightish">The Method</h2>
+            <span className="eyebrow text-muted-foreground">Four movements</span>
           </div>
-          <div className="border border-white/15 bg-white p-6 text-black">
-            <div className="flex items-start justify-between gap-6">
+
+          {methods.map((m, index) => (
+            <article
+              key={m.index}
+              className="grid gap-x-12 gap-y-10 border-b border-border py-16 lg:grid-cols-[0.95fr_1.05fr] lg:py-24"
+            >
               <div>
-                <p className="text-sm text-muted-foreground">Overall Score</p>
-                <p className="mt-2 text-6xl font-semibold">
-                  {compatibilityReport.overallScore}%
-                </p>
+                <Reveal>
+                  <div className="flex items-baseline gap-4">
+                    <span className="font-display text-sm text-claret">({m.index})</span>
+                    <span className="eyebrow text-muted-foreground">{m.kicker}</span>
+                  </div>
+                  <h3 className="mt-6 max-w-md font-display text-[clamp(1.7rem,3vw,2.6rem)] font-light leading-[1.1] tracking-tightish text-balance">
+                    {m.title}
+                  </h3>
+                  <p className="mt-6 max-w-md text-[15px] font-medium leading-7">{m.lede}</p>
+                  <p className="mt-4 max-w-md text-[15px] leading-7 text-muted-foreground">
+                    {m.body}
+                  </p>
+                  <div className="mt-8 max-w-md">
+                    <p className="eyebrow text-muted-foreground">Approach</p>
+                    <ul className="mt-4 space-y-3">
+                      {m.approach.map((a) => (
+                        <li key={a} className="flex gap-3 border-t border-border pt-3 text-sm leading-6">
+                          <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-claret" />
+                          <span className="text-muted-foreground">{a}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="mt-8 max-w-md border-l-2 border-claret/40 pl-4">
+                    <p className="eyebrow text-muted-foreground">Outcome</p>
+                    <p className="mt-2 text-sm leading-7">{m.outcome}</p>
+                  </div>
+                </Reveal>
               </div>
-              <Badge tone="blue">
-                <Share2 className="mr-1 h-3 w-3" />
-                Share card ready
-              </Badge>
-            </div>
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
-              {[
-                ["Communication", compatibilityReport.communication],
-                ["Lifestyle", compatibilityReport.lifestyle],
-                ["Values", compatibilityReport.values],
-                ["Ambition", compatibilityReport.ambition]
-              ].map(([label, value]) => (
-                <div key={label} className="border border-border p-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>{label}</span>
-                    <span className="font-semibold">{value}%</span>
-                  </div>
-                  <div className="mt-3 h-1.5 bg-muted">
-                    <div className="h-full bg-blue-600" style={{ width: `${value}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-8 space-y-3">
-              {compatibilityReport.greenFlags.slice(0, 2).map((item) => (
-                <div key={item} className="flex gap-3 text-sm leading-6">
-                  <Check className="mt-1 h-4 w-4 text-blue-600" />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+              <Reveal delay={0.1} className="lg:pt-2">
+                {previews[index]}
+              </Reveal>
+            </article>
+          ))}
         </div>
       </section>
 
-      <section id="trust" className="px-5 py-24 sm:px-8">
-        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-2">
-          <div>
-            <LockKeyhole className="h-7 w-7 text-blue-600" />
-            <h2 className="mt-6 text-3xl font-semibold sm:text-5xl">
-              Built for trust before virality.
-            </h2>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {trustItems.map((item) => (
-              <div key={item} className="border-t border-border pt-5">
-                <p className="font-medium">{item}</p>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Clear controls, explicit consent, and explainable outputs for
-                  every part of the experience.
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="pricing" className="border-t border-border px-5 py-24 sm:px-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-end">
-            <div>
-              <p className="text-sm font-medium text-blue-700">Subscription</p>
-              <h2 className="mt-4 text-3xl font-semibold sm:text-5xl">
-                Start free. Go deeper when curiosity becomes a habit.
+      {/* Discretion */}
+      <section id="discretion" className="border-t border-border bg-ink px-5 py-24 text-paper sm:px-8 sm:py-32">
+        <div className="mx-auto max-w-[1240px]">
+          <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+            <Reveal>
+              <p className="eyebrow text-paper/45">Trust</p>
+              <h2 className="mt-6 max-w-md font-display text-[clamp(2rem,4vw,3.4rem)] font-light leading-[1.05] tracking-tightish text-balance">
+                Built on consent and control.
               </h2>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="border border-border p-6">
-                <p className="text-lg font-semibold">Free</p>
-                <p className="mt-2 text-sm text-muted-foreground">3 AI meetings</p>
-                <div className="mt-8 flex items-center gap-3 text-sm">
-                  <MessageCircle className="h-4 w-4 text-blue-600" />
-                  Live transcript and standard report
-                </div>
-              </div>
-              <div className="border border-black bg-black p-6 text-white">
-                <p className="text-lg font-semibold">Premium</p>
-                <p className="mt-2 text-sm text-white/65">
-                  Unlimited meetings, deep analysis, PDF exports
-                </p>
-                <div className="mt-8 flex items-center gap-3 text-sm">
-                  <FileText className="h-4 w-4 text-blue-300" />
-                  Built for people who need to know
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="mt-16 flex flex-col items-start justify-between gap-6 border-t border-border pt-8 md:flex-row md:items-center">
-            <div>
-              <p className="text-2xl font-semibold">
-                This is slightly insane. That is the point.
+              <p className="mt-6 max-w-sm leading-7 text-paper/65">
+                Your representative only knows what you choose to tell it. No feed to
+                scroll, no audience to perform for — just one considered introduction
+                at a time.
               </p>
-              <p className="mt-2 text-muted-foreground">
-                Find out what your AI thinks of you, and what their AI thinks of them.
-              </p>
+            </Reveal>
+            <div className="grid gap-px border-t border-paper/15">
+              {trustItems.map((item, index) => (
+                <Reveal key={item.title} delay={index * 0.05}>
+                  <div className="grid gap-3 border-b border-paper/15 py-7 sm:grid-cols-[180px_1fr] sm:gap-8">
+                    <p className="font-display text-lg font-light">{item.title}</p>
+                    <p className="text-sm leading-7 text-paper/60">{item.body}</p>
+                  </div>
+                </Reveal>
+              ))}
             </div>
-            <Button asChild size="lg">
-              <Link href="/create-shadow">
-                Create Your Shadow <Users className="h-4 w-4" />
-              </Link>
-            </Button>
           </div>
         </div>
       </section>
+
+      {/* Membership */}
+      <section id="membership" className="px-5 py-24 sm:px-8 sm:py-32">
+        <div className="mx-auto max-w-[1240px]">
+          <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+            <Reveal>
+              <p className="eyebrow text-claret">Membership</p>
+              <h2 className="mt-6 font-display text-[clamp(2rem,4vw,3.4rem)] font-light leading-[1.05] tracking-tightish text-balance">
+                Start free. Stay when curiosity becomes courtship.
+              </h2>
+            </Reveal>
+            <div className="grid gap-px overflow-hidden border border-border bg-border md:grid-cols-2">
+              <Reveal className="h-full">
+                <div className="flex h-full flex-col bg-background p-8">
+                  <p className="font-display text-xl font-light">Free</p>
+                  <p className="mt-2 text-sm text-muted-foreground">Three introductions, with our compliments</p>
+                  <ul className="mt-8 space-y-3 text-sm text-muted-foreground">
+                    <li className="flex gap-3 border-t border-border pt-3"><Check className="mt-0.5 h-4 w-4 text-claret" /> Full transcript of each introduction</li>
+                    <li className="flex gap-3 border-t border-border pt-3"><Check className="mt-0.5 h-4 w-4 text-claret" /> A standard reading per match</li>
+                  </ul>
+                  <div className="mt-8 pt-4">
+                    <Button asChild variant="secondary" size="sm">
+                      <Link href="/create-shadow">Start free</Link>
+                    </Button>
+                  </div>
+                </div>
+              </Reveal>
+              <Reveal delay={0.06} className="h-full">
+                <div className="flex h-full flex-col bg-ink p-8 text-paper">
+                  <div className="flex items-center gap-3">
+                    <p className="font-display text-xl font-light">Patron</p>
+                    <Badge className="border-paper/25 text-paper/70">Premium</Badge>
+                  </div>
+                  <p className="mt-2 text-sm text-paper/65">Unlimited introductions and the full reading</p>
+                  <ul className="mt-8 space-y-3 text-sm text-paper/65">
+                    <li className="flex gap-3 border-t border-paper/15 pt-3"><Check className="mt-0.5 h-4 w-4 text-claret" /> Deep analysis across all dimensions</li>
+                    <li className="flex gap-3 border-t border-paper/15 pt-3"><Check className="mt-0.5 h-4 w-4 text-claret" /> Keepsake exports of every reading</li>
+                  </ul>
+                  <div className="mt-8 pt-4">
+                    <Button asChild size="sm" className="bg-paper text-ink hover:bg-paper/90">
+                      <Link href="/create-shadow">Become a patron</Link>
+                    </Button>
+                  </div>
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border px-5 pb-12 pt-20 sm:px-8">
+        <div className="mx-auto max-w-[1240px]">
+          <Reveal>
+            <p className="max-w-4xl font-display text-[clamp(2rem,6vw,5rem)] font-light leading-[1.02] tracking-tighter2 text-balance">
+              Let your minds meet first.
+            </p>
+          </Reveal>
+          <div className="mt-16 grid gap-10 border-t border-border pt-10 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <LogoMark />
+              <p className="mt-4 max-w-[15rem] text-sm leading-6 text-muted-foreground">
+                Agentic Matchmaking for people who would rather know than wonder.
+              </p>
+            </div>
+            <div>
+              <p className="eyebrow text-muted-foreground">Navigate</p>
+              <ul className="mt-5 space-y-3 text-sm text-muted-foreground">
+                <li><a href="#salon" className="transition hover:text-foreground">Live demo</a></li>
+                <li><a href="#field" className="transition hover:text-foreground">The Field</a></li>
+                <li><a href="#method" className="transition hover:text-foreground">The Method</a></li>
+                <li><a href="#discretion" className="transition hover:text-foreground">Trust</a></li>
+                <li><a href="#membership" className="transition hover:text-foreground">Membership</a></li>
+              </ul>
+            </div>
+            <div>
+              <p className="eyebrow text-muted-foreground">Begin</p>
+              <ul className="mt-5 space-y-3 text-sm text-muted-foreground">
+                <li><Link href="/create-shadow" className="transition hover:text-foreground">Create your shadow</Link></li>
+                <li><Link href="/signin" className="transition hover:text-foreground">Sign in</Link></li>
+                <li><Link href="/meeting/demo" className="transition hover:text-foreground">Watch two meet</Link></li>
+              </ul>
+            </div>
+            <div>
+              <p className="eyebrow text-muted-foreground">Legal</p>
+              <ul className="mt-5 space-y-3 text-sm text-muted-foreground">
+                <li><Link href="/terms" className="transition hover:text-foreground">Terms of Use</Link></li>
+                <li><Link href="/privacy" className="transition hover:text-foreground">Privacy Policy</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="mt-16 flex flex-col gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+            <span>© {new Date().getFullYear()} Shadow. All rights reserved.</span>
+            <div className="flex items-center gap-6">
+              <Link href="/terms" className="transition hover:text-foreground">Terms</Link>
+              <Link href="/privacy" className="transition hover:text-foreground">Privacy</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }

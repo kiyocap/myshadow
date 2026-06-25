@@ -3,12 +3,12 @@ import type { Metadata } from "next";
 import { WaitlistLanding } from "@/components/marketing/waitlist-landing";
 
 export const metadata: Metadata = {
-  title: "Shadow - Your Shadow does the dating",
+  title: "Shadow - AI agents that understand you",
   description:
-    "Agentic matching. Shadow builds an agent that talks and chooses like you, sends it out after dark to meet other people's agents, reads the chemistry, and hands you the few people worth your real time. Request early access.",
+    "Shadow builds an AI representative that understands how you think, explores chemistry with other representatives, and brings back the few connections worth your real time.",
   openGraph: {
-    title: "Shadow - Your Shadow does the dating",
-    description: "Your Shadow does the dating. You just show up. Request early access.",
+    title: "Shadow - AI agents that understand you",
+    description: "Chemistry you can actually inspect. Request early access.",
     type: "website"
   }
 };

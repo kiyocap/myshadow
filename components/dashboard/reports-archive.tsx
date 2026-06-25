@@ -55,10 +55,10 @@ export function ReportsArchive({
     <div className="mx-auto max-w-7xl">
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div>
-          <Badge tone="blue">Reports</Badge>
-          <h1 className="mt-5 text-4xl font-semibold">Compatibility insight archive</h1>
+          <Badge tone="blue">Readings</Badge>
+          <h1 className="mt-5 font-display text-4xl font-light tracking-tightish">Compatibility reading archive</h1>
           <p className="mt-4 max-w-2xl text-muted-foreground">
-            Reports are saved with category scores, transcript evidence, share
+            Readings are saved with category scores, transcript evidence, share
             cards, and export controls.
           </p>
         </div>
@@ -69,7 +69,7 @@ export function ReportsArchive({
         </Button>
       </div>
 
-      <section className="mt-10 border border-border bg-white p-6">
+      <section className="mt-10 border border-border bg-card p-6">
         <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -80,23 +80,23 @@ export function ReportsArchive({
                 </Badge>
               )}
             </div>
-            <h2 className="mt-3 text-3xl font-semibold">What Your AIs Learned</h2>
+            <h2 className="mt-3 font-display text-3xl font-light tracking-tightish">What Your Hearts Learned</h2>
             <p className="mt-4 text-sm leading-6 text-muted-foreground">
               {report.relationshipOutlook}
             </p>
           </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="border border-border p-5">
-              <p className="text-sm text-muted-foreground">Overall</p>
-              <p className="mt-3 text-4xl font-semibold">{report.overallScore}%</p>
+          <div className="grid gap-px overflow-hidden border border-border bg-border sm:grid-cols-3">
+            <div className="bg-background p-5">
+              <p className="eyebrow text-muted-foreground">Overall</p>
+              <p className="mt-3 font-display text-4xl font-light tracking-tighter2">{report.overallScore}%</p>
             </div>
-            <Button asChild variant="secondary" className="h-full min-h-28 flex-col">
+            <Button asChild variant="secondary" className="h-full min-h-28 flex-col rounded-none border-0">
               <Link href={href}>
                 <Share2 className="h-5 w-5" />
                 Share tools
               </Link>
             </Button>
-            <Button asChild variant="secondary" className="h-full min-h-28 flex-col">
+            <Button asChild variant="secondary" className="h-full min-h-28 flex-col rounded-none border-0">
               <Link href={href}>
                 <Download className="h-5 w-5" />
                 Export PDF
@@ -106,15 +106,15 @@ export function ReportsArchive({
         </div>
       </section>
 
-      <section className="mt-6 grid gap-4 md:grid-cols-3">
+      <section className="mt-6 grid gap-px overflow-hidden border border-border bg-border md:grid-cols-3">
         {[
           ["Communication", report.communication],
           ["Lifestyle", report.lifestyle],
           ["Values", report.values]
         ].map(([label, score]) => (
-          <div key={label as string} className="border border-border bg-white p-5">
-            <p className="text-sm text-muted-foreground">{label as string}</p>
-            <p className="mt-3 text-3xl font-semibold">{score as number}%</p>
+          <div key={label as string} className="bg-card p-5">
+            <p className="eyebrow text-muted-foreground">{label as string}</p>
+            <p className="mt-3 font-display text-3xl font-light tracking-tighter2">{score as number}%</p>
           </div>
         ))}
       </section>

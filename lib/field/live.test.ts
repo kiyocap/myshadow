@@ -180,14 +180,87 @@ test("live meeting completes with instant openers plus model replies", async () 
   assert.equal(result.source, "openai");
   assert.ok(result.transcript.length >= 4, "two stages × opener + reply");
   assert.ok(
-    result.transcript.some((m) => m.content.includes("curious") || m.content.includes("pull")),
-    "instant openers should land without waiting on the model"
+    result.transcript.some((m) =>
+      /hobby-matching|surface looks plausible|shared interests|awkward moment|pretty version|failure mode|pressure|repair read/i.test(
+        m.content
+      )
+    ),
+    "instant openers should land with discussion-shaped prompts before waiting on the model"
   );
   assert.ok(
     result.transcript.some((m) => /line \d+/.test(m.content)),
     "model replies should follow the openers"
   );
   assert.ok(result.run.memory.compatibilityScore >= 0);
+});
+
+test("live meeting answers an open question before moving into logistics", async () => {
+  const capturedUserPrompts: string[] = [];
+  const client = {
+    chat: {
+      completions: {
+        create: async (req: any) => {
+          const user: string = req.messages?.[1]?.content ?? "";
+          capturedUserPrompts.push(user);
+          const payload = JSON.parse(user);
+          if (payload.openQuestionToAnswer) {
+            return {
+              choices: [
+                {
+                  message: {
+                    content: JSON.stringify({
+                      content:
+                        "Hewie would welcome Amara taking the lead if it stayed warm and specific, because that makes repair feel collaborative rather than corrective.",
+                      intent: "RESOLUTION",
+                      learned: ["Hewie can receive direct repair when it feels collaborative"],
+                      stillWantToProbe: [],
+                      stageGoalMet: true
+                    })
+                  }
+                }
+              ]
+            };
+          }
+
+          return {
+            choices: [
+              {
+                message: {
+                  content: JSON.stringify({
+                    content:
+                      "Amara would name the tension calmly; how does Hewie feel about Amara taking the lead in those moments?",
+                    intent: "QUESTION",
+                    learned: ["Amara names tension calmly"],
+                    stillWantToProbe: ["Hewie's response to Amara leading repair"],
+                    stageGoalMet: true
+                  })
+                }
+              }
+            ]
+          };
+        }
+      }
+    }
+  };
+
+  const result = await runLiveMeeting(
+    A,
+    B,
+    { stages: ["friction_test", "logistics"] },
+    client as any
+  );
+
+  assert.ok(
+    capturedUserPrompts.some((prompt) => JSON.parse(prompt).openQuestionToAnswer),
+    "the next turn should be explicitly prompted to close the open question"
+  );
+
+  const flat = result.run.stageResults.flatMap((stage) => stage.exchange);
+  const logisticsIndex = flat.findIndex((message) => message.stage === "logistics");
+  assert.ok(logisticsIndex > 0, "logistics should still run after the question is closed");
+  assert.equal(flat[logisticsIndex - 1].stage, "friction_test");
+  assert.match(flat[logisticsIndex - 1].content, /Hewie would welcome Amara taking the lead/);
+  assert.ok(!flat[logisticsIndex - 1].content.includes("?"));
 });
 
 test("no client throws — live agents only, no demo fallback", async () => {

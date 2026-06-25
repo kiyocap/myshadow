@@ -6,7 +6,12 @@ import {
   type MeetingTranscriptMessage,
   type CompatibilityReportData
 } from "@/lib/ai";
-import { databaseReady, proxyToRepresentative } from "@/lib/db-shadow";
+import {
+  databaseReady,
+  proxyToRepresentative,
+  saveUserShadow,
+  type SaveShadowInput
+} from "@/lib/db-shadow";
 import { saveMeeting } from "@/lib/meeting-store";
 import { getPrisma } from "@/lib/prisma";
 
@@ -39,8 +44,85 @@ export function inviteCodeForUser(userId: string) {
   return `PX-${normalized.slice(-8)}`;
 }
 
+function normalizeInviteCode(inviteCode: string) {
+  const normalized = inviteCode.replace(/[^a-z0-9-]/gi, "").toUpperCase();
+  return normalized.startsWith("PX-") ? normalized : `PX-${normalized.slice(-8)}`;
+}
+
+function mobileInviteUserId(inviteCode: string) {
+  return `ios_${normalizeInviteCode(inviteCode).replace(/[^A-Z0-9]/g, "_").toLowerCase()}`;
+}
+
+export async function seedMobileInviteHost(
+  inviteCode: string,
+  input: SaveShadowInput
+) {
+  const db = getPrisma();
+  const normalizedCode = normalizeInviteCode(inviteCode);
+  const userId = mobileInviteUserId(normalizedCode);
+
+  await db.user.upsert({
+    where: { id: userId },
+    create: {
+      id: userId,
+      name: input.name
+    },
+    update: {
+      name: input.name
+    }
+  });
+
+  const proxy = await saveUserShadow(userId, input);
+  const meeting = await db.meeting.upsert({
+    where: { inviteCode: normalizedCode },
+    create: { inviteCode: normalizedCode },
+    update: {},
+    include: { participants: true }
+  });
+
+  const alreadyJoined = meeting.participants.some(
+    (participant) => participant.proxyId === proxy.id
+  );
+
+  if (!alreadyJoined && meeting.participants.length >= 2) {
+    throw new Error("INVITE_FULL");
+  }
+
+  if (!alreadyJoined) {
+    await db.meetingParticipant.create({
+      data: {
+        meetingId: meeting.id,
+        proxyId: proxy.id,
+        role: meeting.participants.length === 0 ? "A" : "B"
+      }
+    });
+  }
+
+  return {
+    inviteCode: normalizedCode,
+    meetingId: meeting.id
+  };
+}
+
+export async function deleteMobileInviteHost(inviteCode: string) {
+  const db = getPrisma();
+  const normalizedCode = normalizeInviteCode(inviteCode);
+  const userId = mobileInviteUserId(normalizedCode);
+
+  await db.meeting.deleteMany({
+    where: { inviteCode: normalizedCode }
+  });
+
+  await db.user.deleteMany({
+    where: { id: userId }
+  });
+
+  return { inviteCode: normalizedCode, deleted: true };
+}
+
 export async function acceptInviteForUser(inviteCode: string, userId: string) {
   const db = getPrisma();
+  const normalizedCode = normalizeInviteCode(inviteCode);
   const proxy = await db.proxy.findUnique({ where: { userId } });
 
   if (!proxy) {
@@ -48,8 +130,8 @@ export async function acceptInviteForUser(inviteCode: string, userId: string) {
   }
 
   const meeting = await db.meeting.upsert({
-    where: { inviteCode },
-    create: { inviteCode },
+    where: { inviteCode: normalizedCode },
+    create: { inviteCode: normalizedCode },
     update: {},
     include: { participants: true }
   });
@@ -85,11 +167,12 @@ export async function ensureInviteForUser(inviteCode: string, userId: string) {
   }
 
   const db = getPrisma();
+  const normalizedCode = normalizeInviteCode(inviteCode);
   const proxy = await db.proxy.findUnique({ where: { userId } });
 
   if (!proxy) {
     const existingMeeting = await db.meeting.findUnique({
-      where: { inviteCode },
+      where: { inviteCode: normalizedCode },
       include: {
         participants: {
           orderBy: { role: "asc" },
@@ -101,7 +184,7 @@ export async function ensureInviteForUser(inviteCode: string, userId: string) {
     return existingMeeting
       ? meetingStateFromRecord(existingMeeting)
       : {
-          inviteCode,
+          inviteCode: normalizedCode,
           meetingId: null,
           participantCount: 0,
           isReady: false,
