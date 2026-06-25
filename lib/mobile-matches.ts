@@ -4,6 +4,7 @@ import { saveUserShadow, type SaveShadowInput } from "@/lib/db-shadow";
 import { requireLiveMobileUser } from "@/lib/mobile-auth";
 import { getPrisma } from "@/lib/prisma";
 import {
+  assertMobileUsersNotBlocked,
   getOrCreateMobileThread,
   resolveReachableCandidate,
   type MobileChatCandidate,
@@ -116,6 +117,13 @@ export async function likeMobileMatch(
   if (other.id === user.id) {
     throw new Error("SELF_LIKE");
   }
+
+  await assertMobileUsersNotBlocked(user.id, other.id).catch((error) => {
+    if (error instanceof Error && error.message === "CHAT_BLOCKED") {
+      throw new Error("MATCH_BLOCKED");
+    }
+    throw error;
+  });
 
   await db.matchLike.upsert({
     where: {

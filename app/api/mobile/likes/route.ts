@@ -88,6 +88,13 @@ export async function POST(request: Request) {
           { status: 409 }
         );
       }
+
+      if (error.message === "MATCH_BLOCKED") {
+        return NextResponse.json(
+          { error: "You cannot match with a blocked person." },
+          { status: 403 }
+        );
+      }
     }
 
     throw error;

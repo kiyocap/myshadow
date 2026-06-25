@@ -101,6 +101,13 @@ export async function POST(request: Request) {
         );
       }
 
+      if (error.message === "CHAT_BLOCKED") {
+        return NextResponse.json(
+          { error: "This conversation is blocked." },
+          { status: 403 }
+        );
+      }
+
       if (error.message === "EMPTY_MESSAGE") {
         return NextResponse.json(
           { error: "Enter a message before sending." },

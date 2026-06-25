@@ -169,6 +169,59 @@ try {
   });
   assert(cFetch.status === 403, `non-participant expected 403, got ${cFetch.status}`);
 
+  const aBlocksB = await post("/api/mobile/blocks", {
+    identity: a.identity,
+    action: "block",
+    candidate: b.candidate
+  });
+  assert(aBlocksB.status === 200, `A block expected 200, got ${aBlocksB.status}`);
+  assert(
+    aBlocksB.payload.blockedUserIds.includes(b.id),
+    "A block response did not include B"
+  );
+
+  const aBlockList = await post("/api/mobile/blocks", {
+    identity: a.identity,
+    action: "list"
+  });
+  assert(aBlockList.status === 200, `A block list expected 200, got ${aBlockList.status}`);
+  assert(
+    aBlockList.payload.blockedUserIds.includes(b.id),
+    "A block did not persist server-side"
+  );
+
+  const bAfterBlock = await post("/api/mobile/chats/thread", {
+    identity: b.identity,
+    candidate: a.candidate,
+    message: `blocked reply ${runId}`
+  });
+  assert(bAfterBlock.status === 403, `B send after block expected 403, got ${bAfterBlock.status}`);
+
+  const aAfterBlock = await post("/api/mobile/chats/thread", {
+    identity: a.identity,
+    candidate: b.candidate,
+    message: `blocked sender ${runId}`
+  });
+  assert(aAfterBlock.status === 403, `A send after block expected 403, got ${aAfterBlock.status}`);
+
+  const aChatsAfterBlock = await post("/api/mobile/chats", {
+    identity: a.identity
+  });
+  assert(aChatsAfterBlock.status === 200, `A chat list after block expected 200, got ${aChatsAfterBlock.status}`);
+  assert(
+    !aChatsAfterBlock.payload.threads.some((thread) => thread.remoteUserId === b.id),
+    "A chat list still includes blocked B"
+  );
+
+  const bChatsAfterBlock = await post("/api/mobile/chats", {
+    identity: b.identity
+  });
+  assert(bChatsAfterBlock.status === 200, `B chat list after block expected 200, got ${bChatsAfterBlock.status}`);
+  assert(
+    !bChatsAfterBlock.payload.threads.some((thread) => thread.remoteUserId === a.id),
+    "B chat list still includes A after being blocked"
+  );
+
   console.log("Mobile chat RC check passed", {
     baseUrl,
     users: [a.id, b.id, c.id],

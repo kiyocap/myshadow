@@ -76,6 +76,22 @@ async function assertMutualMatch(userId: string, otherId: string) {
   }
 }
 
+export async function assertMobileUsersNotBlocked(userId: string, otherId: string) {
+  const db = getPrisma();
+  const block = await db.userBlock.findFirst({
+    where: {
+      OR: [
+        { blockerId: userId, blockedId: otherId },
+        { blockerId: otherId, blockedId: userId }
+      ]
+    }
+  });
+
+  if (block) {
+    throw new Error("CHAT_BLOCKED");
+  }
+}
+
 export async function upsertMobileUser(identity: MobileChatIdentity) {
   const db = getPrisma();
   const email = clean(identity.email)?.toLowerCase() ?? null;
@@ -144,21 +160,34 @@ export async function resolveReachableCandidate(candidate: MobileChatCandidate) 
 export async function listMobileChats(identity: MobileChatIdentity) {
   const db = getPrisma();
   const user = await requireLiveMobileUser(identity);
-  const threads = await db.chatThread.findMany({
-    where: {
-      OR: [{ participantAId: user.id }, { participantBId: user.id }]
-    },
-    orderBy: { updatedAt: "desc" },
-    include: {
-      participantA: true,
-      participantB: true,
-      messages: { orderBy: { createdAt: "desc" }, take: 1 }
-    }
-  });
+  const [threads, blocks] = await Promise.all([
+    db.chatThread.findMany({
+      where: {
+        OR: [{ participantAId: user.id }, { participantBId: user.id }]
+      },
+      orderBy: { updatedAt: "desc" },
+      include: {
+        participantA: true,
+        participantB: true,
+        messages: { orderBy: { createdAt: "desc" }, take: 1 }
+      }
+    }),
+    db.userBlock.findMany({
+      where: {
+        OR: [{ blockerId: user.id }, { blockedId: user.id }]
+      }
+    })
+  ]);
+  const blockedIds = new Set(
+    blocks.map((block) => (block.blockerId === user.id ? block.blockedId : block.blockerId))
+  );
 
   return {
     userId: user.id,
-    threads: threads.map((thread) => {
+    threads: threads.filter((thread) => {
+      const otherId = thread.participantAId === user.id ? thread.participantBId : thread.participantAId;
+      return !blockedIds.has(otherId);
+    }).map((thread) => {
       const other = thread.participantAId === user.id ? thread.participantB : thread.participantA;
       const last = thread.messages[0];
       return {
@@ -188,6 +217,7 @@ export async function getOrCreateMobileThread(
     throw new Error("SELF_CHAT");
   }
 
+  await assertMobileUsersNotBlocked(user.id, other.id);
   await assertMutualMatch(user.id, other.id);
 
   const key = pairKey(user.id, other.id);
