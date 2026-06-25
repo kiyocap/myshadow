@@ -8,7 +8,9 @@ const identitySchema = z.object({
   userKey: z.string().optional().nullable(),
   inviteCode: z.string().optional().nullable(),
   email: z.string().trim().email().optional().nullable(),
-  displayName: z.string().optional().nullable()
+  displayName: z.string().optional().nullable(),
+  mobileSessionToken: z.string().optional().nullable(),
+  appleUserId: z.string().optional().nullable()
 });
 
 const candidateSchema = z.object({
@@ -54,7 +56,21 @@ export async function POST(request: Request) {
     if (error instanceof Error) {
       if (error.message === "MOBILE_IDENTITY_REQUIRED") {
         return NextResponse.json(
-          { error: "Sign in is required before liking live matches." },
+          { error: "Sign in with Apple is required before liking live matches." },
+          { status: 401 }
+        );
+      }
+
+      if (error.message === "LIVE_AUTH_REQUIRED") {
+        return NextResponse.json(
+          { error: "Sign in with Apple is required before liking live matches." },
+          { status: 401 }
+        );
+      }
+
+      if (error.message === "LIVE_AUTH_EXPIRED") {
+        return NextResponse.json(
+          { error: "Your live session expired. Please sign in with Apple again." },
           { status: 401 }
         );
       }

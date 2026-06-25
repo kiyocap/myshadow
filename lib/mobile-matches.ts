@@ -1,11 +1,11 @@
 import { createHash } from "crypto";
 
 import { saveUserShadow, type SaveShadowInput } from "@/lib/db-shadow";
+import { requireLiveMobileUser } from "@/lib/mobile-auth";
 import { getPrisma } from "@/lib/prisma";
 import {
   getOrCreateMobileThread,
   resolveReachableCandidate,
-  upsertMobileUser,
   type MobileChatCandidate,
   type MobileChatIdentity
 } from "@/lib/mobile-chat";
@@ -32,7 +32,7 @@ export async function listMobileMatches(
   shadow?: SaveShadowInput
 ) {
   const db = getPrisma();
-  const user = await upsertMobileUser(identity);
+  const user = await requireLiveMobileUser(identity);
 
   if (shadow) {
     await saveUserShadow(user.id, shadow);
@@ -106,7 +106,7 @@ export async function likeMobileMatch(
   candidate: MobileChatCandidate
 ) {
   const db = getPrisma();
-  const user = await upsertMobileUser(identity);
+  const user = await requireLiveMobileUser(identity);
   const other = await resolveReachableCandidate(candidate);
 
   if (!other) {

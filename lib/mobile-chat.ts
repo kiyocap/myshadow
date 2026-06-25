@@ -1,13 +1,12 @@
 import { createHash } from "crypto";
 
+import {
+  requireLiveMobileUser,
+  type MobileAuthIdentity
+} from "@/lib/mobile-auth";
 import { getPrisma } from "@/lib/prisma";
 
-export interface MobileChatIdentity {
-  userKey?: string | null;
-  inviteCode?: string | null;
-  email?: string | null;
-  displayName?: string | null;
-}
+export interface MobileChatIdentity extends MobileAuthIdentity {}
 
 export interface MobileChatCandidate {
   userId?: string | null;
@@ -131,24 +130,12 @@ export async function resolveReachableCandidate(candidate: MobileChatCandidate) 
   }
 
   if (email) {
-    return db.user.upsert({
-      where: { email },
-      create: {
-        id: inviteCode ? userIdFromInvite(inviteCode) : userIdFromEmail(email),
-        email,
-        name: candidate.name
-      },
-      update: { name: candidate.name }
-    });
+    return db.user.findUnique({ where: { email } });
   }
 
   if (inviteCode) {
     const id = userIdFromInvite(inviteCode);
-    return db.user.upsert({
-      where: { id },
-      create: { id, name: candidate.name },
-      update: { name: candidate.name }
-    });
+    return db.user.findUnique({ where: { id } });
   }
 
   return null;
@@ -156,7 +143,7 @@ export async function resolveReachableCandidate(candidate: MobileChatCandidate) 
 
 export async function listMobileChats(identity: MobileChatIdentity) {
   const db = getPrisma();
-  const user = await upsertMobileUser(identity);
+  const user = await requireLiveMobileUser(identity);
   const threads = await db.chatThread.findMany({
     where: {
       OR: [{ participantAId: user.id }, { participantBId: user.id }]
@@ -190,7 +177,7 @@ export async function getOrCreateMobileThread(
   candidate: MobileChatCandidate
 ) {
   const db = getPrisma();
-  const user = await upsertMobileUser(identity);
+  const user = await requireLiveMobileUser(identity);
   const other = await resolveReachableCandidate(candidate);
 
   if (!other) {

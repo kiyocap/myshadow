@@ -1,10 +1,23 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { databaseReady } from "@/lib/db-shadow";
+import { requireLiveMobileUser } from "@/lib/mobile-auth";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const identitySchema = z.object({
+  userKey: z.string().optional().nullable(),
+  inviteCode: z.string().optional().nullable(),
+  email: z.string().trim().email().optional().nullable(),
+  displayName: z.string().optional().nullable(),
+  mobileSessionToken: z.string().optional().nullable(),
+  appleUserId: z.string().optional().nullable()
+});
+
 const reportSchema = z.object({
+  identity: identitySchema,
   reportId: z.string().min(1).max(128),
   reporterEmail: z.string().trim().email().optional().nullable(),
   reportedUserId: z.string().min(1).max(128),
@@ -24,6 +37,13 @@ const reportSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  if (!databaseReady()) {
+    return NextResponse.json(
+      { error: "DATABASE_URL is required for mobile reports." },
+      { status: 503 }
+    );
+  }
+
   const body = await request.json().catch(() => null);
   const parsed = reportSchema.safeParse(body);
 
@@ -35,6 +55,28 @@ export async function POST(request: Request) {
   }
 
   const report = parsed.data;
+  let reporter;
+  try {
+    reporter = await requireLiveMobileUser(report.identity);
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === "LIVE_AUTH_REQUIRED" || error.message === "MOBILE_IDENTITY_REQUIRED")
+    ) {
+      return NextResponse.json(
+        { error: "Sign in with Apple is required before submitting live reports." },
+        { status: 401 }
+      );
+    }
+    if (error instanceof Error && error.message === "LIVE_AUTH_EXPIRED") {
+      return NextResponse.json(
+        { error: "Your live session expired. Please sign in with Apple again." },
+        { status: 401 }
+      );
+    }
+    throw error;
+  }
+
   const receivedAt = new Date();
   const safetyInbox =
     process.env.SAFETY_REPORT_EMAIL ?? "hewie@humanityone.world";
@@ -53,7 +95,7 @@ export async function POST(request: Request) {
           "A mobile safety report was submitted.",
           "",
           `Report ID: ${report.reportId}`,
-          `Reporter: ${report.reporterEmail ?? "unknown"}`,
+          `Reporter: ${reporter.email ?? report.reporterEmail ?? "unknown"} (${reporter.id})`,
           `Reported user: ${report.reportedUserName} (${report.reportedUserId})`,
           `Reason: ${report.reasonLabel} (${report.reason})`,
           `Created at: ${(report.createdAt ?? receivedAt).toISOString()}`,
@@ -71,7 +113,8 @@ export async function POST(request: Request) {
   } else {
     console.warn("Mobile safety report received without email delivery", {
       reportId: report.reportId,
-      reporterEmail: report.reporterEmail ?? null,
+      reporterEmail: reporter.email ?? report.reporterEmail ?? null,
+      reporterUserId: reporter.id,
       reportedUserId: report.reportedUserId,
       reportedUserName: report.reportedUserName,
       reason: report.reason,
