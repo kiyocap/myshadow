@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { getServerSession } from "next-auth";
-import { ArrowRight, LockKeyhole, MessageCircle } from "lucide-react";
+import { ArrowRight, Download, LockKeyhole, MessageCircle, Smartphone } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,9 @@ export default async function InvitePage({
   const { code } = await params;
   const session = await getServerSession(authOptions);
   const callbackUrl = `/invite/${encodeURIComponent(code)}`;
+  const encodedCode = encodeURIComponent(code);
+  const appDeepLink = `shadow://invite/${encodedCode}`;
+  const appStoreUrl = "https://apps.apple.com/app/id6778405295";
   const inviteState = session?.user?.id
     ? await ensureInviteForUser(code, session.user.id).catch((error) => ({
         error:
@@ -107,6 +110,18 @@ export default async function InvitePage({
                 </Link>
               </Button>
             )}
+            <div className="mt-3 grid gap-2">
+              <Button asChild variant="secondary" size="lg" className="w-full whitespace-nowrap">
+                <a href={appDeepLink}>
+                  Open in Shadow <Smartphone className="h-4 w-4" />
+                </a>
+              </Button>
+              <Button asChild variant="ghost" size="lg" className="w-full whitespace-nowrap">
+                <a href={appStoreUrl}>
+                  Download Shadow <Download className="h-4 w-4" />
+                </a>
+              </Button>
+            </div>
           </div>
           {participants.length > 0 ? (
             <p className="mt-4 text-sm leading-6 text-muted-foreground">
