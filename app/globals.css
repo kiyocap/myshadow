@@ -1,21 +1,35 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=Inter:wght@300;400;500;600&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 100%;
-  --foreground: 0 0% 4%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 4%;
-  --muted: 0 0% 96%;
-  --muted-foreground: 0 0% 42%;
-  --accent: 216 100% 97%;
-  --accent-foreground: 221 83% 36%;
-  --border: 0 0% 90%;
-  --input: 0 0% 88%;
-  --ring: 221 83% 53%;
-  --primary: 0 0% 4%;
-  --primary-foreground: 0 0% 100%;
+  /* Editorial quiet-luxury palette: warm paper, ink, stone, single claret accent */
+  --background: 40 33% 94%;
+  --foreground: 24 11% 10%;
+  --card: 40 36% 97%;
+  --card-foreground: 24 11% 10%;
+  --muted: 38 20% 89%;
+  --muted-foreground: 28 8% 40%;
+  --accent: 40 24% 90%;
+  --accent-foreground: 24 11% 14%;
+  --border: 34 16% 84%;
+  --input: 34 16% 80%;
+  --ring: 24 11% 10%;
+  --primary: 24 11% 10%;
+  --primary-foreground: 40 36% 97%;
+  /* Single restrained accent + a deep ink panel tone */
+  --claret: 350 30% 32%;
+  --ink: 26 14% 9%;
+  --paper: 40 33% 94%;
+  /* Aurora accent: matched exactly to the iOS app's Aurora palette.
+     --aurora is the app accentColor hsl(250 52% 70%); --aurora-glow is the app
+     accentSurface hsl(250 55% 95%); --aurora-deep is a darker tone of the same
+     hue for legible accent text on the cream canvas. */
+  --aurora: 250 52% 70%;
+  --aurora-deep: 250 50% 46%;
+  --aurora-glow: 250 55% 95%;
 }
 
 * {
@@ -30,9 +44,10 @@ body {
   margin: 0;
   background: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
-    "Segoe UI", sans-serif;
-  text-rendering: geometricPrecision;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-feature-settings: "ss01", "cv01";
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -41,8 +56,13 @@ a {
 }
 
 ::selection {
-  background: #dbeafe;
-  color: #0a0a0a;
+  background: hsl(24 11% 10%);
+  color: hsl(40 36% 97%);
+}
+
+.font-display {
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-optical-sizing: auto;
 }
 
 .text-balance {
@@ -69,4 +89,180 @@ a {
     linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px),
     linear-gradient(180deg, #3d3d40, #171719);
   background-size: 56px 28px, 56px 28px, 100% 100%;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.6875rem;
+  font-weight: 500;
+}
+
+.rule {
+  height: 1px;
+  background: hsl(var(--border));
+}
+
+/* Understated editorial link with animated underline */
+.link-underline {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 1px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(1);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.link-underline:hover::after {
+  transform: scaleX(0);
+}
+
+/* Aurora waitlist landing helpers */
+.aurora-orb {
+  background:
+    radial-gradient(
+      closest-side,
+      hsl(var(--aurora-glow) / 0.95) 0%,
+      hsl(var(--aurora) / 0.78) 38%,
+      hsl(var(--aurora-deep) / 0.32) 66%,
+      hsl(var(--aurora-deep) / 0) 100%
+    );
+}
+
+@keyframes aurora-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+
+@keyframes aurora-drift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -14px, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.aurora-breathe {
+  animation: aurora-breathe 7s ease-in-out infinite;
+}
+
+.aurora-drift {
+  animation: aurora-drift 9s ease-in-out infinite;
+}
+
+/* Premium card system for the waitlist landing: hairline border, layered soft
+   shadow, a faint top sheen, and a gentle aurora lift on hover. */
+.card-premium {
+  position: relative;
+  border-radius: 1.5rem;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / 0.7),
+    0 1px 2px hsl(250 30% 20% / 0.04),
+    0 22px 40px -30px hsl(250 45% 28% / 0.42);
+  transition:
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.5s ease;
+}
+
+.card-premium::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(160deg, hsl(0 0% 100% / 0.9), transparent 32%);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.card-premium:hover {
+  transform: translateY(-5px);
+  border-color: hsl(var(--aurora) / 0.55);
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / 0.8),
+    0 30px 60px -28px hsl(250 50% 32% / 0.5),
+    0 0 0 1px hsl(var(--aurora) / 0.28),
+    0 0 40px -10px hsl(var(--aurora) / 0.35);
+}
+
+/* The "old way" comparison card: deliberately quieter and flatter so the
+   Shadow card beside it reads as the elevated, desirable option. */
+.card-quiet {
+  position: relative;
+  border-radius: 1.5rem;
+  background: hsl(var(--muted) / 0.5);
+  border: 1px solid hsl(var(--border));
+}
+
+/* The elevated aurora comparison/feature card: a soft periwinkle wash over the
+   near-black ink panel, so the orb accent and white type pop. */
+.card-aurora {
+  position: relative;
+  border-radius: 1.5rem;
+  background:
+    radial-gradient(120% 90% at 85% 0%, hsl(var(--aurora) / 0.28), transparent 60%),
+    linear-gradient(180deg, hsl(250 30% 14%), hsl(250 32% 10%));
+  border: 1px solid hsl(var(--aurora) / 0.28);
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / 0.08),
+    0 30px 60px -30px hsl(250 60% 20% / 0.7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-premium {
+    transition: none;
+  }
+}
+
+@keyframes shadow-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.shadow-marquee-track {
+  animation: shadow-marquee 48s linear infinite;
+}
+
+.shadow-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora-breathe,
+  .aurora-drift,
+  .shadow-marquee-track {
+    animation: none;
+  }
 }

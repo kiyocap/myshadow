@@ -9,6 +9,10 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
+        display: ["Fraunces", "Georgia", "Times New Roman", "serif"]
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -30,11 +34,23 @@ const config: Config = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))"
+        },
+        claret: "hsl(var(--claret))",
+        ink: "hsl(var(--ink))",
+        paper: "hsl(var(--paper))",
+        aurora: {
+          DEFAULT: "hsl(var(--aurora))",
+          deep: "hsl(var(--aurora-deep))",
+          glow: "hsl(var(--aurora-glow))"
         }
       },
+      letterSpacing: {
+        tightish: "-0.02em",
+        tighter2: "-0.035em"
+      },
       boxShadow: {
-        "quiet-xl": "0 20px 70px rgba(0, 0, 0, 0.08)",
-        "blue-line": "0 0 0 1px rgba(37, 99, 235, 0.12)"
+        "quiet-xl": "0 1px 0 hsl(34 16% 84%)",
+        "blue-line": "0 0 0 1px hsl(34 16% 84%)"
       }
     }
   },
